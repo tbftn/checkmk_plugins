@@ -62,13 +62,13 @@ This plugin has been tested with the following models:
 - Universal Platform EXOS
   - 5520-48W-EXOS
 - Universal Platform Switch Engine
-  - 5420M-16MW-32P-4YE-SwitchEngine (1)
-  - 5420M-24W-4YE-SwitchEngine (9)
-  - 5420M-48T-4YE-SwitchEngine (2)
-  - 5420M-48W-4YE-SwitchEngine (34)
-  - 5520-12MW-36W-SwitchEngine (2)
-  - 5520-24W-SwitchEngine (19)
-  - 5520-24X-SwitchEngine (20)
-  - 5520-48SE-SwitchEngine (83)
-  - 5520-48T-SwitchEngine (4)
-  - 5520-48W-SwitchEngine (28)
+  - 5420M-16MW-32P-4YE-SwitchEngine
+  - 5420M-24W-4YE-SwitchEngine
+  - 5420M-48T-4YE-SwitchEngine
+  - 5420M-48W-4YE-SwitchEngine
+  - 5520-12MW-36W-SwitchEngine
+  - 5520-24W-SwitchEngine
+  - 5520-24X-SwitchEngine
+  - 5520-48SE-SwitchEngine
+  - 5520-48T-SwitchEngine
+  - 5520-48W-SwitchEngine
