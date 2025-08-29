@@ -32,8 +32,8 @@ This way, the check provides more transparency about the actual status of each p
 * *perfdata*: 
   * Electrical power in W
     
-![sample output](img/sample_output.png?raw=true "sample [SHORT TITLE]")
-![sample output](img/wato.png?raw=true "sample [SHORT TITLE]")
+![check](img/check.png?raw=true "sample [SHORT TITLE]")
+![wato](img/wato.png?raw=true "sample [SHORT TITLE]")
 
 ### Download
 * [Download latest mkp file][PACKAGE]
