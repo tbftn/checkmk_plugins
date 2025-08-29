@@ -17,19 +17,58 @@ This way, the check provides more transparency about the actual status of each p
 
 
 ### Check information
-* *service*: creates the service **Power Supply Input** for each installed PSU  
-* *state*: 
-  * **warning**:
-    * if electrical power exceeds the configured value (default: 110 W)
-  * **critical**:
-    * if electrical power exceeds the configured value (default: 120 W)
-    * if the power supply is in state "Powered Off"
-    * if the power supply is in state "Failed"
-* *wato*:
-  * Configure upper wattage thresholds  
-  * Configure how "Powered Off" and "Failed" should be mapped to Checkmk states  
-* *perfdata*: 
-  * Electrical power in W
+**Service**
+- Creates one service **Power Supply Input** per installed PSU
+
+**State logic**
+- `WARN` if electrical power > 110 W (default)
+- `CRIT` if electrical power > 120 W (default)
+- `CRIT` if PSU is "Powered Off" or "Failed" (both configurable)
+
+**WATO options**
+- Configure threshold values for wattage
+- Adjust Checkmk states for "Powered Off" / "Failed"
+
+**Performance data**
+- Electrical power in W
     
 ![check](img/check.png?raw=true "sample [SHORT TITLE]")
 ![wato](img/wato.png?raw=true "sample [SHORT TITLE]")
+
+### Tested Devices
+This plugin has been tested with the following models:
+
+- Summit Series
+  - X440-G2-12p-10G4
+  - X440-G2-24p-10G4
+  - X440-G2-24t-10G4
+  - X440-G2-48p-10G4
+  - X450-G2-48p-10G4
+  - X460-G2-24p-10G4
+  - X460-G2-24t-10G4
+  - X460-G2-24t-G4
+  - X460-G2-24x-10GE4
+  - X460-G2-48p-10G4
+  - X460-G2-48t-10G4
+  - X460-G2-48x-10G4
+  - X465-24XE
+  - X465-48P
+  - X620-16t
+  - X620-16x
+  - X670-G2-48x-4q
+  - X690-48x-2q-4c
+  - X695-48Y-8C
+  - X870-32c
+- Universal Platform EXOS
+  - 5520-48W-EXOS
+- Universal Platform Switch Engine
+  - 5420M-16MW-32P-4YE-SwitchEngine (1)
+  - 5420M-24W-4YE-SwitchEngine (9)
+  - 5420M-48T-4YE-SwitchEngine (2)
+  - 5420M-48W-4YE-SwitchEngine (34)
+  - 5520-12MW-36W-SwitchEngine (2)
+  - 5520-24W-SwitchEngine (19)
+  - 5520-24X-SwitchEngine (20)
+  - 5520-48SE-SwitchEngine (83)
+  - 5520-48T-SwitchEngine (4)
+  - 5520-48W-SwitchEngine (28)
