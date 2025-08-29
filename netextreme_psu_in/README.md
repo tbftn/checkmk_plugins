@@ -1,4 +1,3 @@
-[PACKAGE]: ../../tree/main/source/packages/netextreme_psu_in-1.0.0.mkp "netextreme_psu_in-1.0.0.mkp"
 # Extreme Power Supply Inputs
 
 This check monitors the *electrical power* of Extreme Networks Power Supply Inputs.
@@ -34,6 +33,3 @@ This way, the check provides more transparency about the actual status of each p
     
 ![check](img/check.png?raw=true "sample [SHORT TITLE]")
 ![wato](img/wato.png?raw=true "sample [SHORT TITLE]")
-
-### Download
-* [Download latest mkp file][PACKAGE]
