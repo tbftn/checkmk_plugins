@@ -8,7 +8,7 @@ It is an **enhanced replacement** for the original Checkmk check *netextreme_psu
 > This plugin requires at least firmware version 30.x. It has not been tested with earlier versions.
 
 > [!note]
-> This plugin modifies existing power supply rules. After installation, you must manually migrate them to the new Extreme Power Supply Input ruleset.
+> This plugin adds the new "Extreme Power Supply Input" rule. After installation, the old rules named "Parameters for input phases of UPSs and PDUs" will no longer be effective. You must manually migrate them to the new "Extreme Power Supply Input" rule set.
 
 ### Improvements over the original check
 * More detailed state handling: instead of only ‘OK’ or ‘not detected’, this check distinguishes between Powered On, Powered Off, and Failed.
