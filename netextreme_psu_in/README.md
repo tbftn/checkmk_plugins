@@ -15,9 +15,6 @@ It is an **enhanced replacement** for the original Checkmk check *netextreme_psu
 * Flexible configuration:  
   * "Powered Off" and "Failed" can be mapped to the desired Checkmk states (default: `CRIT`).  
   * Upper power consumption thresholds can be adjusted in WATO.  
-* Clearer service information and performance data (electrical power in W).
-
-This way, the check provides more transparency about the actual status of each power supply, while staying fully compatible with Checkmk.
 
 ### Check information
 #### Service
