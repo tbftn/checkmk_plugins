@@ -12,7 +12,6 @@ This check will monitor the *memory usage* of Extreme Networks Switches.
 
 #### WATO options
 - Configure threshold values for memory usage
-- Adjust Checkmk states for "Powered Off" / "Failed"
 
 ![wato](img/wato.png?raw=true "sample ruleset")
 
