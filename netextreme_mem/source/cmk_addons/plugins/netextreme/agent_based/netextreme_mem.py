@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # 
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-09-05
+# Date   : 2025-09-06
 # License: GNU General Public License v2
 #
 # Check: Extreme Networks Memory Usage
@@ -19,9 +19,9 @@ from cmk.plugins.lib.size_trend import size_trend
 
 
 def parse_netextreme_mem(string_table):
-
+    mem = {}
+    
     if len(string_table) > 0:
-
         # convert values in Bytes
         mem = {
             'total': int(string_table[0][0]) * 1024,
@@ -40,7 +40,8 @@ def parse_netextreme_mem(string_table):
 
 
 def discover_netextreme_mem(section):
-    yield Service()
+    if len(section) > 0:
+        yield Service()
 
 
 def check_netextreme_mem(params, section):

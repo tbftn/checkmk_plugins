@@ -1,2 +1,5 @@
+2025-09-06 (0.1.1):
+    There was a parsing error if Extreme Switches did not have the appropriate OIDs
+
 2025-09-05 (0.1.0):
 	init release
