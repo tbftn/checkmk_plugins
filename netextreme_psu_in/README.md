@@ -1,4 +1,4 @@
-[PACKAGE]: ../../raw/master/packages/netextreme_psu_in-1.0.0.mkp "netextreme_psu_in-1.0.0.mkp"
+[PACKAGE]: packages/netextreme_psu_in-0.1.0.mkp "netextreme_psu_in-0.1.0.mkp"
 # Extreme Power Supply Inputs
 
 This check will monitor the *electrical power* and the *state* of Extreme Networks Power Supply Inputs.
@@ -6,7 +6,7 @@ This check will monitor the *electrical power* and the *state* of Extreme Networ
 It is an **enhanced replacement** for the original Checkmk check *netextreme_psu_in*.
 
 > [!note]
-> This plugin requires at least firmware version 30.x. It has not been tested with earlier versions.
+> This plugin requires at least Extreme Networks' firmware version 30.x. It has not been tested with earlier versions.
 
 > [!note]
 > This plugin adds the new "Extreme Power Supply Input" rule. After installation, the old rules named "Parameters for input phases of UPSs and PDUs" will no longer be effective. You must manually migrate them to the new "Extreme Power Supply Input" rule set.
@@ -18,6 +18,7 @@ It is an **enhanced replacement** for the original Checkmk check *netextreme_psu
   * Upper power consumption thresholds can be adjusted in WATO.  
 
 ### Check information
+
 #### Service
 - Creates one service **Power Supply Input** per installed power supplies
 
