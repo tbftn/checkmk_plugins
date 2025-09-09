@@ -10,8 +10,18 @@ Each plugin lives in its own folder and has its own `README.md` with details.
 | [netextreme_psu_in](netextreme_psu_in/) | 0.1.0 | Extreme Networks | Monitor the *electrical power* and the *state* of Power Supply Inputs |
 
 ## Installation
-You can either copy plugin files into your Checkmk site manually, or build an MKP (Checkmk package).  
-See the official Checkmk Docs for MKPs here: **[Checkmk Docs](https://docs.checkmk.com/latest/en/mkps.html)**
+You can either copy plugin files manually into your Checkmk site or install an MKP (Checkmk package) via the web interface.
+The official Checkmk documentation for MKPs can be found here: **[Checkmk Docs](https://docs.checkmk.com/latest/en/mkps.html)**
 
 ## Author
 Developed and maintained by: Alexander Vogel (alexander.vogel.2305@gmail.com)
+
+## Contributing
+If you encounter any issues or have ideas for improvements, feel free to contact me at alexander.vogel.2305@gmail.com.
+
+For certain fixes or enhancements, I may need a `snmpwalk` output from the device in question.  
+This should include:
+
+- `.1.3.6.1.2.1.1.1` (`sysDescr`)  
+- `.1.3.6.1.2.1.1.2` (`sysObjectID`)  
+- All SNMP OIDs used by this plugin
