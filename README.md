@@ -16,6 +16,9 @@ Each plugin lives in its own folder and has its own `README.md` with details.
 
 - [**ExtremeCloud IQ Controller (Special agent)**](netextreme_xiq_controller/): This special Agent will monitor the *APs*, *Sites* and *WLANs* from the ExtremeCloud IQ Controller
 
+### VMware
+- [**Avi Load Balancer**](vmware_alb/): Monitor the states from *controllers*, *service engines* and *virtual services* of a VMware AVI Load Balancer
+
 ## Installation
 You can either copy plugin files manually into your Checkmk site or install an MKP (Checkmk package) via the web interface.
 The official Checkmk documentation for MKPs can be found here: **[Checkmk Docs](https://docs.checkmk.com/latest/en/mkps.html)**
@@ -26,7 +29,7 @@ Developed and maintained by: Alexander Vogel (alexander.vogel.2305@gmail.com)
 ## Contributing
 If you encounter any issues or have ideas for improvements, feel free to contact me at alexander.vogel.2305@gmail.com.
 
-For certain fixes or enhancements, I may need a `snmpwalk` output from the device in question.  
+For certain fixes or enhancements, I may need a `snmpwalk` output from the device in question.
 This should include:
 
 - `.1.3.6.1.2.1.1.1` (`sysDescr`)  

@@ -1,0 +1,15 @@
+title: VMware Avi Load Balancer: Virtual Service
+agents: snmp
+catalog: virtual/vmware
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors the state of a virtual service from a VMware Avi Load Balancer.
+
+ The state can be 'Ok' or 'Down'.
+
+item:
+ The name of the virtual service.
+
+discovery:
+ One service is created for each virtual service.
