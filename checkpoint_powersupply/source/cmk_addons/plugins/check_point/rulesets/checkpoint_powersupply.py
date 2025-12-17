@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-09-12
+# Date   : 2025-12-17
 # License: GNU General Public License v2
 #
 # Ruleset: Checkpoint Power Supply
@@ -36,7 +36,7 @@ def _parameter_form_checkpoint_powersupply():
     )
 
 
-rule_spec_netextreme_psu_in = CheckParameters(
+rule_spec_checkpoint_powersupply = CheckParameters(
     name='checkpoint_powersupply',
     title=Title('Check Point Power Supply'),
     topic=Topic.NETWORKING,

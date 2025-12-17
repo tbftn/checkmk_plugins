@@ -1,2 +1,5 @@
+2025-12-17 (0.1.1):
+    Fix: In some cases, a crash occurred when the power supply status became CRITICAL
+
 2025-09-12 (0.1.0):
 	init release

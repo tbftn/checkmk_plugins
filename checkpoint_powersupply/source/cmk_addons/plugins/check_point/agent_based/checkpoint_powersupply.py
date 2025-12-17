@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-09-12
+# Date   : 2025-12-17
 # License: GNU General Public License v2
 #
 # Check: Checkpoint Power Supply
@@ -45,7 +45,7 @@ def check_checkpoint_powersupply(item, params, section):
         if psu['status'] in ['OK', 'Present', 'Up']:
             yield Result(state=State.OK, summary=f"Status: {psu['status']}")
         else:
-            yield Result(state=params['psu_not_up'], summary=f"Status: {psu['status']}")
+            yield Result(state=State(params['psu_not_up']), summary=f"Status: {psu['status']}")
 
         return
 

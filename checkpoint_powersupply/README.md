@@ -1,4 +1,4 @@
-[PACKAGE]: packages/checkpoint_powersupply-0.1.0.mkp "checkpoint_powersupply-0.1.0.mkp"
+[PACKAGE]: packages/checkpoint_powersupply-0.1.1.mkp "checkpoint_powersupply-0.1.1.mkp"
 # Check Point Power Supply
 This check will monitor the *state* of Check Point Power Supplys.
 
