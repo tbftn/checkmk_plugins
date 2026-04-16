@@ -1,2 +1,7 @@
+2026-04-16 (0.2.0):
+    Added status "Upgrade failed" for access points
+    Added inventory data (IP, MAC, ...) for access points
+    Naming convention standardized and adapted (Extreme CloudIQ -> ExtremeCloud IQ)
+
 2025-11-28 (0.1.0):
 	init release

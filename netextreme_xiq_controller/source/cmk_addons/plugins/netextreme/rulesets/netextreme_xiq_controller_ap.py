@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-11-28
+# Date   : 2026-04-16
 # License: GNU General Public License v2
 #
 # Ruleset: ExtremeCloud IQ Controller - APs
@@ -12,14 +12,11 @@ from cmk.rulesets.v1.form_specs import (
     DefaultValue,
     DictElement,
     Dictionary,
-    InputHint,
     Integer,
     LevelDirection,
     LevelsType,
     ServiceState,
     SimpleLevels,
-    migrate_to_integer_simple_levels,
-    validators,
 )
 from cmk.rulesets.v1.rule_specs import (
     CheckParameters,
@@ -54,6 +51,13 @@ def _parameter_form_netextreme_xiq_controller_ap():
                     prefill=DefaultValue(1)
                 )
             ),
+            'state_ap_upgradefailed': DictElement(
+                parameter_form=ServiceState(
+                    title=Title('State if AP is "Upgrade Failed"'),
+                    help_text=Help('Default monitoring state if the upgrade has failed.'),
+                    prefill=DefaultValue(2)
+                )
+            ),
             'state_ap_critical': DictElement(
                 parameter_form=ServiceState(
                     title=Title('State if AP is "Critical"'),
@@ -86,7 +90,7 @@ def _parameter_form_netextreme_xiq_controller_ap():
 
 rule_spec_netextreme_xiq_controller_ap = CheckParameters(
     name='netextreme_xiq_controller_ap',
-    title=Title('Extreme CloudIQ Controller APs'),
+    title=Title('ExtremeCloud IQ Controller APs'),
     topic=Topic.NETWORKING,
     condition = HostAndItemCondition(item_title=Title("AP")),
     parameter_form=_parameter_form_netextreme_xiq_controller_ap,

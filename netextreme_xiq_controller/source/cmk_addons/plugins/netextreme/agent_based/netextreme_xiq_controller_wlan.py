@@ -1,16 +1,28 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-11-28
+# Date   : 2026-04-16
 # License: GNU General Public License v2
 #
 # Check: ExtremeCloud IQ Controller - WLANs
 
+# sample output:
+# <<<netextreme_xiq_controller_wlan:sep(0)>>>
+# [
+#     {
+#         'serviceName': 'Serivce_1', 
+#         'status': 'enabled',
+#         'ssid': 'wlan01', 
+#         'clients': 24
+#     },
+#     {...},
+# ]
+
+
 import ast
 import itertools
 
-from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, get_rate, get_value_store, Metric, Service, State, render, Result
-from datetime import datetime, timezone
+from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, State, Result
 
 
 def parse_netextreme_xiq_controller_wlan(string_table):
@@ -34,9 +46,6 @@ def discover_netextreme_xiq_controller_wlan(section):
 def check_netextreme_xiq_controller_wlan(item, params, section):
 
     for service in section:
-        
-        inOctets_rate = 0
-        outOctets_rate = 0
 
         if f"{service['serviceName']}" != item:
             continue

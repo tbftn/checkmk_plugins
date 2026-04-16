@@ -1,16 +1,26 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-11-28
+# Date   : 2026-04-16
 # License: GNU General Public License v2
 #
 # Check: ExtremeCloud IQ Controller - Sites
 
+# sample output:
+# <<<netextreme_xiq_controller_site:sep(0)>>>
+# [
+#     {
+#         'name': 'Site_1', 
+#         'clients': 56
+#     },
+#     {...},
+# ]
+
+
 import ast
 import itertools
 
-from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, get_rate, get_value_store, Metric, Service, State, render, Result
-from datetime import datetime, timezone
+from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service
 
 
 def parse_netextreme_xiq_controller_site(string_table):

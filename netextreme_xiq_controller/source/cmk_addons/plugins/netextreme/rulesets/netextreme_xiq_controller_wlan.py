@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-11-28
+# Date   : 2026-04-16
 # License: GNU General Public License v2
 #
 # Ruleset: ExtremeCloud IQ Controller - WLANs
@@ -12,14 +12,10 @@ from cmk.rulesets.v1.form_specs import (
     DefaultValue,
     DictElement,
     Dictionary,
-    InputHint,
     Integer,
     LevelDirection,
     LevelsType,
-    ServiceState,
     SimpleLevels,
-    migrate_to_integer_simple_levels,
-    validators,
 )
 from cmk.rulesets.v1.rule_specs import (
     CheckParameters,
@@ -47,7 +43,7 @@ def _parameter_form_netextreme_xiq_controller_wlan():
 
 rule_spec_netextreme_xiq_controller_wlan = CheckParameters(
     name='netextreme_xiq_controller_wlan',
-    title=Title('Extreme CloudIQ Controller WLAN Clients'),
+    title=Title('ExtremeCloud IQ Controller WLAN Clients'),
     topic=Topic.NETWORKING,
     condition = HostAndItemCondition(item_title=Title("WLAN")),
     parameter_form=_parameter_form_netextreme_xiq_controller_wlan,
