@@ -1,22 +1,22 @@
-[PACKAGE]: packages/netextreme_xiq_controller-0.1.0.mkp "netextreme_xiq_controller-0.1.0.mkp"
+[PACKAGE]: packages/netextreme_xiq_controller-0.2.0.mkp "netextreme_xiq_controller-0.2.0.mkp"
 # ExtremeCloud IQ Controller (Special Agent)
 
-This special Agent will monitor the APs, Sites and WLANs from the **ExtremeCloud IQ Controller**
+This special agent will monitor the APs, Sites and WLANs from the **ExtremeCloud IQ Controller**
 
 > [!note]
-> This Special Agent monitors the on-premises solution, the ExtremeCloud IQ Controller. Please do NOT confuse this with ExtremeCloud IQ, a cloud solution.
+> This Special Agent monitors the on-premises solution, the "[ExtremeCloud IQ Controller](https://www.extremenetworks.com/products/wi-fi-management/extremecloud-iq-controller/extremecloud-iq-controller)". Please do NOT confuse this with "ExtremeCloud IQ", a cloud solution.
 
 This Special Agent can add the following sections:
 - Access point
 - Site
 - WLAN
 
-### Check information netxtreme_xiq_controller_ap
+### Check information netextreme_xiq_controller_ap
 To access the ExtremeCloud IQ Controller, you need a user with admin privileges. In the ExtremeCloud IQ Controller rule set, under the Other integrations section, you then need to enter the access data.
 
 ![wato](img/wato_special_agent.png?raw=true "sample ruleset")
  
-### Check information netxtreme_xiq_controller_ap
+### Check information netextreme_xiq_controller_ap
 
 #### Service
 - Creates the service **AP** for each access point that is created in the ExtremeCloud IQ Controller
@@ -37,7 +37,7 @@ To access the ExtremeCloud IQ Controller, you need a user with admin privileges.
 #### Sample Output
 ![check](img/check_ap.png?raw=true "sample service output")
 
-### Check information netxtreme_xiq_controller_site
+### Check information netextreme_xiq_controller_site
 
 #### Service
 - Creates the service **Site** for each Site (Location) that is created in the ExtremeCloud IQ Controller
@@ -53,7 +53,7 @@ To access the ExtremeCloud IQ Controller, you need a user with admin privileges.
 #### Sample Output
 ![check](img/check_site.png?raw=true "sample service output")
 
-### Check information netxtreme_xiq_controller_wlan
+### Check information netextreme_xiq_controller_wlan
 
 #### Service
 - Creates the service **WLAN** for each WLAN (SSID) that is created in the ExtremeCloud IQ Controller
