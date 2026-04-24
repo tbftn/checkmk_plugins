@@ -17,7 +17,7 @@ Each plugin lives in its own folder and has its own `README.md` with details.
 - [**ExtremeCloud IQ Controller (Special Agent)**](netextreme_xiq_controller/): This special Agent will monitor the *APs*, *Sites* and *WLANs* from the ExtremeCloud IQ Controller
 
 ### VMware
-- [**Avi Load Balancer**](vmware_alb/): Monitor the states from *controllers*, *service engines* and *virtual services* of a VMware AVI Load Balancer
+- [**Avi Load Balancer \[DEPRECATED\]**](vmware_alb/): Monitor the states from *controllers*, *service engines* and *virtual services* of a VMware AVI Load Balancer
 - [**Avi Load Balancer (Special Agent)**](vmware_avi/): Monitor *Alerts*, *Certificates*, *Clouds*, *Cluster*, *Nodes*, *Service Engines* and *Virtual Services* from the VMware Avi Load Balancer
 
 ## Installation

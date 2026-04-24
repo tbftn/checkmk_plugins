@@ -1,5 +1,9 @@
 [PACKAGE]: packages/vmware_alb-0.1.0.mkp "vmware_alb-0.1.0.mkp"
-# VMware AVI Load Balancer
+# VMware AVI Load Balancer \[DEPRECATED\]
+
+> [!caution]
+> This MKP is no longer maintained and has been replaced by a new special agent for the VMware Avi Load Balancer. The new agent supports significantly more monitoring features than this SNMP-based check. Please use the new agent instead.
+
 This checks will monitor the states from *controllers*, *service engines* and *virtual services* of a VMware AVI Load Balancer.
 
 ### Check information vmware_alb_controller
