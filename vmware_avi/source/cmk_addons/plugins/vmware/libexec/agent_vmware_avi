@@ -1,0 +1,416 @@
+#!/usr/bin/env python3
+#-*- encoding: utf-8
+#
+# Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
+# Date   : 2026-04-24
+# License: GNU General Public License v2
+#
+# Libexec: VMware Avi Load Balancer
+
+
+import argparse
+import requests
+import sys
+import urllib3
+
+from datetime import datetime, timezone
+from requests import Response, Session
+from typing import Dict, Any, List, Optional
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+def parse_arguments(argv):
+    parser = argparse.ArgumentParser(description=__doc__)
+    
+    parser.add_argument("--server", type=str, required=True)
+    parser.add_argument("--username", type=str, required=True)
+    parser.add_argument("--password", type=str, required=True)
+    parser.add_argument("--tenant", type=str, required=False)
+    #parser.add_argument("--verify_ssl", type=bool, required=False)
+    parser.add_argument("--sections", type=str, required=False, default="all")
+
+    args = parser.parse_args(argv)
+    
+    return args
+
+ 
+class VmmareAviLoadBalancerAgent():
+    def __init__(self, server: str, username: str, password: str, tenant: Optional[str] = None, verify_ssl: bool = False, timeout: int = 30) -> None:
+        
+        self.controller = f"https://{server}"
+        self.username = username
+        self.password = password
+        self.tenant = tenant
+        self.verify_ssl = verify_ssl
+        self.timeout = timeout
+
+        self.session: Session = requests.Session()
+        self.session.verify = verify_ssl
+
+
+    @property
+    def base_url(self) -> str:
+        return f"{self.controller}"
+
+    @property
+    def api_base(self) -> str:
+        return f"{self.base_url}/api"
+
+    def _default_headers(self, include_csrf: bool = False) -> Dict[str, str]:
+        headers: Dict[str, str] = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        }
+
+        if self.tenant:
+            headers["X-Avi-Tenant"] = self.tenant
+
+        if include_csrf:
+            csrf = self.session.cookies.get("csrftoken")
+            if csrf:
+                headers["X-CSRFToken"] = csrf
+                headers["Referer"] = self.base_url
+
+        return headers
+
+
+    def _raise_for_status(self, response: Response) -> None:
+        if response.ok:
+            return
+
+        try:
+            error_payload = response.json()
+        except Exception:
+            error_payload = response.text
+
+        raise Exception(
+            f"HTTP {response.status_code} bei {response.request.method} "
+            f"{response.request.url}: {error_payload}"
+        )
+
+    def login(self) -> None:
+        """
+        Baut eine Session ber /login auf.
+        Laut API-Doku liefert der Controller sessionid und csrftoken als Cookies zurck.
+        """
+        url = f"{self.base_url}/login"
+        payload = {
+            "username": self.username,
+            "password": self.password,
+        }
+
+        response = self.session.post(
+            url,
+            data=payload,
+            timeout=self.timeout,
+            verify=self.verify_ssl,
+        )
+        self._raise_for_status(response)
+
+        if "sessionid" not in self.session.cookies:
+            raise Exception("Login erfolgreich, aber kein 'sessionid'-Cookie erhalten.")
+
+    def logout(self) -> None:
+        """
+        Beendet die Session ber /logout.
+        """
+        url = f"{self.base_url}/logout"
+        response = self.session.post(
+            url,
+            headers=self._default_headers(include_csrf=True),
+            timeout=self.timeout,
+            verify=self.verify_ssl,
+        )
+        self._raise_for_status(response)
+
+    def get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        url = f"{self.api_base}/{path.lstrip('/')}"
+        response = self.session.get(
+            url,
+            headers=self._default_headers(include_csrf=False),
+            params=params,
+            timeout=self.timeout,
+            verify=self.verify_ssl,
+        )
+        self._raise_for_status(response)
+        return response.json()
+
+    # Alerts
+    def get_alerts(self):
+        return self.get(f"/alert")
+
+    # Certificates
+    def get_certificates(self):
+        return self.get(f"/sslkeyandcertificate")
+
+    # Cluster and Nodes
+    def get_cluster(self):
+        return self.get(f"/cluster/runtime")
+    
+    # Cloud
+    def get_cloudinventory(self):
+        return self.get(f"/cloud-inventory")
+
+    # ServiceEngine
+    def get_serviceengines_inventory(self, metrics=[], limit=1):
+        params = {
+            "metric_id": ",".join(metrics),
+            "limit": limit,
+            "step": 1,
+        }
+
+        return self.get(f"/serviceengine-inventory", params=params)
+    
+    # VirtualService
+    def get_virtualservices_inventory(self, metrics=[], limit=1):
+        params = {
+            "metric_id": ",".join(metrics),
+            "limit": limit,
+            "step": 1,
+        }
+        return self.get(f"/virtualservice-inventory", params=params)
+    
+
+def avi_time_diff_seconds(timestr: str, format: str = "%Y-%b-%d %H:%M:%S") -> float:
+    if not timestr:
+        return float("nan")
+
+    try:
+        dt = datetime.strptime(timestr, format)
+        dt = dt.replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
+
+        return (now - dt).total_seconds()
+
+    except Exception as e:
+        return float("nan")
+
+
+if __name__ == "__main__":
+
+    args = parse_arguments(sys.argv[1:])
+    
+    # init api
+    avi_agent = VmmareAviLoadBalancerAgent(
+        server=args.server,
+        username=args.username,
+        password=args.password,
+        tenant=args.tenant,
+        verify_ssl=False,
+    )
+
+    # try to login
+    try:
+        avi_agent.login()
+
+        # Alerts
+        if 'alert' in args.sections or 'all' in args.sections:
+            result = avi_agent.get_alerts()
+
+            if len(result) > 0:
+                sys.stdout.write(f"<<<vmware_avi_alert:sep(0)>>>\n")
+                if result['count'] > 0:
+                    for a in result['results']:
+                        tmp_alert = {
+                            "level": a['level'],
+                            "state": a['state'],
+                            "time": datetime.fromtimestamp(a['timestamp']).strftime("%Y-%m-%d %H:%M:%S"),
+                            "summary": a['summary'],
+                            "obj_name": a['obj_name'],
+                        }
+                        sys.stdout.write(f"{tmp_alert}\n")
+
+        # Certificates
+        if 'certificate' in args.sections or 'all' in args.sections:
+            result = avi_agent.get_certificates()
+
+            if len(result) > 0:
+                sys.stdout.write(f"<<<vmware_avi_cert:sep(0)>>>\n")
+                for cert in result['results']:
+                    tmp_cert = {
+                        "name": cert['name'],
+                        "status": cert['status'],
+                        "ocsp_error_status": cert['ocsp_error_status'],
+                        "expire_status": cert['certificate']['expiry_status'],
+                        "not_before": cert['certificate']['not_before'],
+                        "not_after": cert['certificate']['not_after'],
+                        "diff_not_after": ((datetime.strptime(cert['certificate']['not_after'], "%Y-%m-%d %H:%M:%S")) - datetime.now()).total_seconds(),
+                        "self_signed": cert['certificate']['self_signed'],
+                    }
+                    sys.stdout.write(f"{tmp_cert}\n")
+
+        # Cluster and Nodes
+        if 'cluster' in args.sections or 'all' in args.sections:
+            result = avi_agent.get_cluster()
+
+            if len(result) > 0:
+                sys.stdout.write(f"<<<vmware_avi_cluster:sep(0)>>>\n")
+                tmp_cluster = {
+                    "version": result['node_info']['version'],
+                    "patch": result['node_info']['patch'],
+                    "state": result['cluster_state']['state'],
+                    "uptime":  (datetime.now() - (datetime.strptime(result['cluster_state']['up_since'], "%Y-%m-%d %H:%M:%S"))).total_seconds(),
+                    "services": [],
+                }
+
+                for s in result['service_states']:
+                    tmp_cluster['services'].append({
+                        "name": s['name'],
+                        "state": s['state']
+                    })
+
+                sys.stdout.write(f"{tmp_cluster}\n")
+
+                if len(result['node_states']) > 0:
+                    sys.stdout.write(f"<<<vmware_avi_node:sep(0)>>>\n")
+                    for n in result['node_states']:
+                        tmp_node = {
+                            "name": n['name'],
+                            "state": n['state'],
+                            "role": n['role'],
+                            "uptime": (datetime.now() - (datetime.strptime(n['up_since'], "%Y-%m-%d %H:%M:%S"))).total_seconds(),
+                        }
+                        sys.stdout.write(f"{tmp_node}\n")
+
+        # Clouds
+        if 'cloud' in args.sections or 'all' in args.sections:
+            result = avi_agent.get_cloudinventory()
+
+            if len(result) > 0:
+                sys.stdout.write(f"<<<vmware_avi_cloud:sep(0)>>>\n")
+
+                for cloud in result['results']:
+
+                    tmp_cloud = {
+                        "name": cloud['config']['name'],
+                        "state": cloud['status']['state'],
+                    }
+                    sys.stdout.write(f"{tmp_cloud}\n")
+
+        # ServiceEngines
+        if 'service_engine' in args.sections or 'all' in args.sections:
+            metrics = [
+                "se_if.avg_bandwidth",
+                "se_stats.avg_cpu_usage",
+                "se_stats.avg_mem_usage",
+                "se_if.avg_rx_pkts",
+                "se_if.avg_tx_pkts",
+                "se_stats.avg_connection_mem_usage",
+                "se_stats.avg_dynamic_mem_usage",
+                "se_stats.avg_ssl_session_cache",
+                "se_stats.avg_persistent_table_usage",
+                "se_stats.avg_packet_buffer_usage",
+                "se_if.avg_rx_bytes",
+                "se_if.avg_tx_bytes",
+            ]
+
+            result = avi_agent.get_serviceengines_inventory(metrics=metrics)
+
+            # PIGGYBACK
+            if len(result['results']) > 0:
+                for se in result['results']:
+                    sys.stdout.write(f"<<<<{se['config']['name']}>>>>\n")
+
+                    # alert
+                    sys.stdout.write(f"<<<vmware_avi_se_alert:sep(0)>>>\n")
+                    alert = se['alert']
+                    sys.stdout.write(f"{alert}\n")
+
+                    # cpu
+                    sys.stdout.write(f"<<<vmware_avi_se_cpu:sep(0)>>>\n")
+                    cpu = {
+                        "cpu_usage": se['metrics']['se_stats.avg_cpu_usage']['value'],
+                    }
+                    sys.stdout.write(f"{cpu}\n")
+
+                    # healthscore
+                    sys.stdout.write(f"<<<vmware_avi_se_health:sep(0)>>>\n")
+                    health = se['health_score']
+                    sys.stdout.write(f"{health}\n")
+
+                    # heartbeat
+                    sys.stdout.write(f"<<<vmware_avi_se_hb:hb(0)>>>\n")
+                    hb = {
+                        "hb_misses": se['runtime']['hb_status']['num_hb_misses'],
+                        "hb_outstanding": se['runtime']['hb_status']['num_outstanding_hb'],
+                        "last_hb_req_sent": avi_time_diff_seconds(se['runtime']['hb_status']['last_hb_req_sent']),
+                        "last_hb_resp_recv": avi_time_diff_seconds(se['runtime']['hb_status']['last_hb_resp_recv']),
+                    }
+                    sys.stdout.write(f"{hb}\n")
+
+                    # runtime
+                    sys.stdout.write(f"<<<vmware_avi_se_runtime:sep(0)>>>\n")
+                    runtime = {
+                        "state": se['runtime']['oper_status']['state'],
+                        "power_state": se['runtime']['power_state'],
+                        "version": se['runtime']['version'],
+                        "license_state": se['runtime']['license_state'],
+                    }
+                    sys.stdout.write(f"{runtime}\n")
+
+                    # throughput
+                    sys.stdout.write(f"<<<vmware_avi_se_if:sep(0)>>>\n")
+                    interface = {
+                        "throughput": se['metrics']['se_if.avg_bandwidth']['value'], # in bit/s
+                        "rx_packets": se['metrics']['se_if.avg_rx_pkts']['value'],
+                        "tx_packets": se['metrics']['se_if.avg_tx_pkts']['value'],
+                        "rx_bits": se['metrics']['se_if.avg_rx_bytes']['value'] * 8,
+                        "tx_bits": se['metrics']['se_if.avg_tx_bytes']['value'] * 8,
+                    }
+                    sys.stdout.write(f"{interface}\n")
+
+                    # memory
+                    sys.stdout.write(f"<<<vmware_avi_se_mem:sep(0)>>>\n")
+                    mem = {
+                        "mem_usage": se['metrics']['se_stats.avg_mem_usage']['value'],
+                        "con_mem_usage": se['metrics']['se_stats.avg_connection_mem_usage']['value'],
+                        "dyn_mem_usage": se['metrics']['se_stats.avg_dynamic_mem_usage']['value'],
+                    }
+                    sys.stdout.write(f"{mem}\n")
+
+                    # uptime
+                    sys.stdout.write(f"<<<uptime>>>\n")
+                    dt = datetime.strptime(se['runtime']['online_since'], "%Y-%b-%d %H:%M:%S")
+                    sys.stdout.write(f"{(datetime.now() - dt).total_seconds()}\n")
+
+                    sys.stdout.write(f"<<<<>>>>\n") # end of piggyback host
+
+            # === END PIGGYBACK
+
+        # VirtualServices
+        if 'virtual_service' in args.sections or 'all' in args.sections:
+            metrics = [
+                "l7_client.avg_complete_responses", # Requests per second
+                "l4_client.avg_complete_conns", # Connections per second
+                "l4_client.max_open_conns", # Open Connections
+                "l4_client.avg_bandwidth", # Throughput in bit/s
+            ]
+
+            result = avi_agent.get_virtualservices_inventory(metrics=metrics)
+            if len(result['results']) > 0:
+                sys.stdout.write(f"<<<vmware_avi_vs:sep(0)>>>\n")
+                for vs in result['results']:
+                    tmp_vs = {
+                        "name": vs['config']['name'],
+                        "enabled": vs['config']['enabled'],
+                        "state": vs['runtime']['oper_status']['state'],
+                        "health_score": vs['health_score']['health_score'], # in percent
+                        "num_se_requested": vs['runtime']['vip_summary'][0]['num_se_requested'],
+                        "num_se_assigned": vs['runtime']['vip_summary'][0]['num_se_assigned'],
+                        "service_engine": vs['runtime']['vip_summary'][0]['service_engine'],
+                        "alert": vs['alert']
+                    }
+
+                    tmp_vs['rps'] = vs['metrics']['l7_client.avg_complete_responses']['value']
+                    tmp_vs['cps'] = vs['metrics']['l4_client.avg_complete_conns']['value']
+                    tmp_vs['open_conns'] = int(vs['metrics']['l4_client.max_open_conns']['value'])
+                    tmp_vs['throughput'] = vs['metrics']['l4_client.avg_bandwidth']['value']
+
+                    sys.stdout.write(f"{tmp_vs}\n")
+
+    finally:
+        try:
+            avi_agent.logout()
+        except Exception as e:
+            print(e)
