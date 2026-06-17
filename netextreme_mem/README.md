@@ -1,4 +1,4 @@
-[PACKAGE]: packages/netextreme_mem-0.1.1.mkp "netextreme_mem-0.1.1.mkp"
+[PACKAGE]: packages/netextreme_mem-0.1.2.mkp "netextreme_mem-0.1.2.mkp"
 # Extreme Networks Memory Usage
 
 This check will monitor the *memory usage* of Extreme Networks Switches.

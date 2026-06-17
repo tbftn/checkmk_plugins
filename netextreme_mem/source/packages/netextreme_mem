@@ -1,0 +1,12 @@
+{'author': 'Alexander Vogel (alexander.vogel.2305@gmail.com)',
+ 'description': 'Monitor the memory usage of Extreme Networks Switches.\n',
+ 'download_url': 'https://github.com/tbftn/checkmk_plugins/tree/master/netextreme_mem',
+ 'files': {'cmk_addons_plugins': ['netextreme/agent_based/netextreme_mem.py',
+                                  'netextreme/graphing/netextreme_mem.py',
+                                  'netextreme/rulesets/netextreme_mem.py']},
+ 'name': 'netextreme_mem',
+ 'title': 'Extreme Networks Memory Usage',
+ 'version': '0.1.2',
+ 'version.min_required': '2.3.0',
+ 'version.packaged': '2.5.0p4',
+ 'version.usable_until': '2.6.0b1'}

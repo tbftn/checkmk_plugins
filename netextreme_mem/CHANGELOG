@@ -1,3 +1,6 @@
+2026-06-17 (0.1.2):
+    Changed 'Valid until Checkmk version' to 2.6.0b1
+
 2025-09-06 (0.1.1):
     There was a parsing error if Extreme Switches did not have the appropriate OIDs
 
