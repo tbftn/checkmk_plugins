@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-09-01
+# Date   : 2026-06-19
 # License: GNU General Public License v2
 #
 # Ruleset: Extreme Networks Power Supply Input
@@ -12,13 +12,12 @@ from cmk.rulesets.v1.form_specs import (
     DefaultValue,
     DictElement,
     Dictionary,
-    InputHint,
     Integer,
+    LevelsType,
     LevelDirection,
     ServiceState,
     SimpleLevels,
     migrate_to_integer_simple_levels,
-    validators,
 )
 from cmk.rulesets.v1.rule_specs import (
     CheckParameters,
@@ -35,9 +34,11 @@ def _parameter_form_netextreme_psu_in():
                 parameter_form=SimpleLevels(
                     title=Title('Power Supply Input upper levels'),
                     help_text=Help('Set the upper levels for power in W.'),
+                    migrate=migrate_to_integer_simple_levels,
                     form_spec_template=Integer(unit_symbol='W'),
                     level_direction=LevelDirection.UPPER,
-                    prefill_fixed_levels=DefaultValue(value=(110.0, 120.0)),
+                    prefill_levels_type=DefaultValue(LevelsType.FIXED),
+                    prefill_fixed_levels=DefaultValue(value=(110, 120)),
                 )
             ),
             'psu_powered_off': DictElement(

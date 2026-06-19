@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-09-01
+# Date   : 2026-06-19
 # License: GNU General Public License v2
 #
 # Check: Extreme Networks Power Supply Input
@@ -11,7 +11,6 @@ from cmk.agent_based.v2 import (
     check_levels,
     CheckPlugin,
     startswith,
-    Metric,
     OIDEnd,
     Result,
     Service,
@@ -19,9 +18,6 @@ from cmk.agent_based.v2 import (
     SNMPTree,
     State
 )
-
-from typing import Dict, List, Optional, Tuple, Union
-import math
 
 
 # .1.3.6.1.4.1.1916.1.1.1.27.1.2.1 2 --> EXTREME-SYSTEM-MIB::extremePowerSupplyStatus.1
@@ -119,7 +115,7 @@ check_plugin_netextreme_psu_in = CheckPlugin(
     discovery_function = discover_netextreme_psu_in,
     check_function = check_netextreme_psu_in,
     check_default_parameters = {
-        "levels_upper": ('fixed', (110.0, 120.0)), # This levels a recomended by the manufactorer
+        "levels_upper": ('fixed', (110, 120)), # This levels a recomended by the manufactorer
         "psu_powered_off": 2,
         "psu_failed": 2,
     },

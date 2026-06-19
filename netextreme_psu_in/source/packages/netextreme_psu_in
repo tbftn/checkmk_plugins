@@ -1,0 +1,15 @@
+{'author': 'Alexander Vogel (alexander.vogel.2305@gmail.com)',
+ 'description': 'This check monitor the electrical input power of Power '
+                'Supplys from Extreme Network Switches.\n'
+                'It is an enhanced replacement for the original Checkmk check '
+                'netextreme_psu_in.\n',
+ 'download_url': 'https://github.com/tbftn/checkmk_plugins/tree/master/netextreme_psu_in',
+ 'files': {'cmk_addons_plugins': ['netextreme/agent_based/netextreme_psu_in.py',
+                                  'netextreme/rulesets/netextreme_psu_in.py'],
+           'cmk_plugins': ['collection/agent_based/netextreme_psu_in.py']},
+ 'name': 'netextreme_psu_in',
+ 'title': 'Extreme Networks Power Supply Input',
+ 'version': '0.1.2',
+ 'version.min_required': '2.4.0b1',
+ 'version.packaged': '2.5.0p4',
+ 'version.usable_until': '2.6.0b1'}

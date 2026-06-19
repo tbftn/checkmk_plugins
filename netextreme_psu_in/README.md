@@ -1,5 +1,5 @@
-[PACKAGE]: packages/netextreme_psu_in-0.1.1.mkp "netextreme_psu_in-0.1.1.mkp"
-# Extreme Power Supply Inputs
+[PACKAGE]: packages/netextreme_psu_in-0.1.2.mkp "netextreme_psu_in-0.1.2.mkp"
+# Extreme Networks Power Supply Inputs
 
 This check will monitor the *electrical power* and the *state* of Extreme Networks Power Supply Inputs.
 
