@@ -1,0 +1,17 @@
+{'author': 'Alexander Vogel (alexander.vogel.2305@gmail.com)',
+ 'description': 'Monitors STP domains on Extreme Networks switches. A '
+                'dedicated service is created for each STP domain and reports '
+                'the time since the last topology change. Additional metrics '
+                'include the total number of topology changes since the last '
+                'reboot and topology changes per minute.\n',
+ 'download_url': 'https://github.com/tbftn/checkmk_plugins/tree/master/netextreme_stp_domain',
+ 'files': {'cmk_addons_plugins': ['netextreme/agent_based/netextreme_stp_domain.py',
+                                  'netextreme/checkman/netextreme_stp_domain',
+                                  'netextreme/graphing/netextreme_stp_domain.py',
+                                  'netextreme/rulesets/netextreme_stp_domain.py']},
+ 'name': 'netextreme_stp_domain',
+ 'title': 'Extreme Networks Spanning Tree Domain',
+ 'version': '0.1.0',
+ 'version.min_required': '2.4.0p1',
+ 'version.packaged': '2.4.0p32',
+ 'version.usable_until': '2.6.0b1'}
