@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-09-01
+# Date   : 2026-06-20
 # License: GNU General Public License v2
 #
 # Check: Extreme Networks Optical Modules (SFP)
@@ -10,18 +10,14 @@
 from cmk.agent_based.v2 import (
     check_levels,
     CheckPlugin,
-    CheckResult,
     startswith,
-    DiscoveryResult,
     Metric,
     OIDEnd,
     Result,
     Service,
-    SimpleSNMPSection,
     SNMPSection,
     SNMPTree,
     State,
-    StringTable
 )
 
 import math

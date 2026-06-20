@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-09-01
+# Date   : 2026-06-20
 # License: GNU General Public License v2
 #
 # Ruleset: Extreme Networks Optical Modules (SFP)
@@ -9,15 +9,17 @@
 
 from cmk.rulesets.v1 import Help, Title
 from cmk.rulesets.v1.form_specs import (
+    CascadingSingleChoice,
+    CascadingSingleChoiceElement,
     DefaultValue,
     DictElement,
     Dictionary,
-    SimpleLevels,
+    Float,
     FixedValue,
     LevelDirection,
-    CascadingSingleChoice,
-    CascadingSingleChoiceElement,
-    Float,
+    LevelsType,
+    SimpleLevels,
+    migrate_to_float_simple_levels,
 )
 
 from cmk.rulesets.v1.rule_specs import CheckParameters, HostAndItemCondition, Topic
@@ -29,16 +31,20 @@ def _custom_levels_form(dom_title):
             "upper_levels": DictElement(
                 parameter_form=SimpleLevels(
                     title=Title(f"Upper levels for the {dom_title}"),
+                    migrate=migrate_to_float_simple_levels,
                     form_spec_template=Float(unit_symbol='dBm'),
                     level_direction=LevelDirection.UPPER,
+                    prefill_levels_type=DefaultValue(LevelsType.FIXED),
                     prefill_fixed_levels=DefaultValue(value=(0.0, 0.0)),
                 )
             ),
             "lower_levels": DictElement(
                 parameter_form=SimpleLevels(
                     title=Title(f"Lower levels for the {dom_title}"),
+                    migrate=migrate_to_float_simple_levels,
                     form_spec_template=Float(unit_symbol='dBm'),
                     level_direction=LevelDirection.LOWER,
+                    prefill_levels_type=DefaultValue(LevelsType.FIXED),
                     prefill_fixed_levels=DefaultValue(value=(0.0, 0.0)),
                 )
             ),
@@ -47,13 +53,12 @@ def _custom_levels_form(dom_title):
 
 
 def _sensor_dom(dom_title):
-    # Auswahl: no (immer OK), device (Geräte-Grenzen), custom (eigene Grenzwerte)
     return DictElement(
         parameter_form=CascadingSingleChoice(
             title=Title(dom_title),
             help_text=Help("Check the status of the " + dom_title + " sensor. \'Use device levels\': Use levels that are specified by device." + \
                     "You can check there levles on the cli from the extreme device with the command <show port [port] tranceiver information detail>. " + \
-                    "\'Use the following levels\': Use levels that are specified by device. Here you can specify custom thresholds or no thresholds (always up)."),
+                    "\'Use the following levels\': Use custom levels. Here you can specify custom thresholds or no thresholds (always up)."),
             prefill=DefaultValue("device"),
             elements=[
                 CascadingSingleChoiceElement(

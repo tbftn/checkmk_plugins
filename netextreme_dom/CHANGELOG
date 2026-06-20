@@ -1,2 +1,9 @@
+2026-06-20 (0.1.1):
+    Cleaned up plugin, graphing and ruleset code
+    Improved threshold and default value handling
+    Changed 'Minimum required Checkmk version' to 2.4.0b1
+    Changed 'Valid until Checkmk version' to 2.6.0b1
+    Add manpage
+
 2025-09-01 (0.1.0):
 	init release

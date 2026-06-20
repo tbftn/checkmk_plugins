@@ -1,0 +1,31 @@
+title: Extreme  Networks Switch: Digital Optical Monitoring (DOM)
+agents: snmp
+author: alexander.vogel.2305@gmail.com
+catalog: hw/network/netextreme
+license: "GPLv2"
+distribution: "check_mk"
+description:
+ This check monitors the optical receive and transmit signal power of Extreme
+ Networks SFP/SFP+ optical modules via SNMP.
+ 
+ The check creates one service per port and, for multi-channel transceivers, one
+ service per port channel. Services are only discovered for operational DOM
+ sensors on physical ports whose interface admin status is not disabled.
+ 
+ The measured RX and TX optical power values are shown in dBm and are also
+ provided as performance data.
+ 
+ The check can either use the thresholds reported by the device itself or custom
+ thresholds configured via the rule "Extreme Digital Optical Monitoring (DOM)".
+
+
+item:
+ The port number, optionally followed by the optical channel, for example
+ "15" or "49 Channel 2".
+
+discovery: 
+ One service "DOM Port <item>" is discovered for each installed optical module
+ with DOM functionality. For multi-channel optics, one service is discovered per
+ channel.
+
+ Ports with ifAdminStatus down/disabled are not discovered.

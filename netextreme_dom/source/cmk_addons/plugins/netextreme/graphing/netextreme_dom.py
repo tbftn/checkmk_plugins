@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2025-09-01
+# Date   : 2026-06-20
 # License: GNU General Public License v2
 #
 # Graphing: Extreme Networks Optical Modules (SFP)
 
 
 from cmk.graphing.v1 import Title
-from cmk.graphing.v1.graphs import Graph, MinimalRange
 from cmk.graphing.v1.metrics import Color, DecimalNotation, Metric, Unit
 from cmk.graphing.v1.perfometers import Closed, FocusRange, Open, Perfometer, Stacked
 
