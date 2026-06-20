@@ -14,7 +14,7 @@ Each plugin lives in its own folder and has its own `README.md` with details.
 
 - [**Power Supply Input**](netextreme_psu_in/): Monitor the *electrical power* and the *state* of Power Supply Inputs from Extreme Network Switches
 
-- [**Spanning Tree**](netextreme_stp_domain/): monitors the stability of Spanning Tree Protocol (STP) domains on Extreme Networks Switches
+- [**Spanning Tree Domains**](netextreme_stp_domain/): monitors the stability of Spanning Tree Protocol (STP) domains on Extreme Networks Switches
 
 - [**ExtremeCloud IQ Controller (Special Agent)**](netextreme_xiq_controller/): This special Agent will monitor the *APs*, *Sites* and *WLANs* from the ExtremeCloud IQ Controller
 
