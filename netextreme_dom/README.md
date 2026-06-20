@@ -1,4 +1,4 @@
-[PACKAGE]: packages/netextreme_dom-0.1.0.mkp "netextreme_dom-0.1.0.mkp"
+[PACKAGE]: packages/netextreme_dom-0.1.1.mkp "netextreme_dom-0.1.1.mkp"
 # Extreme Networks Optical Modules (SFP)
 
 This check will monitor the *rx_signal_power* and the *tx_signal_power* of Extreme Networks optical modules (SFP).
