@@ -6,7 +6,8 @@ Each plugin lives in its own folder and has its own `README.md` with details.
 
 ### Check Point
 - [**Power Supply**](checkpoint_powersupply/): Monitor the *state* of Power Supplys from Check Point Appliances
-- - [**Voltage**](checkpoint_voltage/): Monitor *voltage sensors* in Check Point Firewalls and Appliances
+
+- [**Voltage**](checkpoint_voltage/): Monitor *voltage sensors* in Check Point Firewalls and Appliances
 
 ### Extreme Networks
 - [**Optical Modules (SFP)**](netextreme_dom/): Monitor the *input power* and the *output power* of optical modules (SFPs) from Extreme Network Switches

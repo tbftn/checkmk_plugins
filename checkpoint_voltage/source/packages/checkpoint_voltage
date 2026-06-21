@@ -1,0 +1,22 @@
+{'author': 'Alexander Vogel (alexander.vogel.2305@gmail.com)',
+ 'description': 'Enhanced Check Point voltage monitoring.\n'
+                '\n'
+                'This extension improves the built-in Check Point voltage '
+                'check by adding configurable state handling for out-of-range '
+                'conditions and sensor read errors. It also provides optional '
+                'performance data generation based on measured voltage values, '
+                'enabling metric collection and graphing.\n'
+                '\n'
+                'Additionally, sensor names are normalized during discovery to '
+                'avoid redundant service names caused by duplicated "Voltage" '
+                'prefixes.\n',
+ 'download_url': 'https://github.com/tbftn/checkmk_plugins/tree/master/checkpoint_voltage',
+ 'files': {'cmk_addons_plugins': ['checkpoint/agent_based/checkpoint_voltage.py',
+                                  'checkpoint/rulesets/checkpoint_voltage.py'],
+           'cmk_plugins': ['collection/agent_based/checkpoint_voltage.py']},
+ 'name': 'checkpoint_voltage',
+ 'title': 'Checkpoint Voltage',
+ 'version': '0.1.0',
+ 'version.min_required': '2.4.0b1',
+ 'version.packaged': '2.5.0p7',
+ 'version.usable_until': '2.6.0b1'}
