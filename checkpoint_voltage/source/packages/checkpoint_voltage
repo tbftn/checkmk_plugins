@@ -15,7 +15,7 @@
                                   'checkpoint/rulesets/checkpoint_voltage.py'],
            'cmk_plugins': ['collection/agent_based/checkpoint_voltage.py']},
  'name': 'checkpoint_voltage',
- 'title': 'Checkpoint Voltage',
+ 'title': 'Check Point Voltage',
  'version': '0.1.0',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.5.0p7',
