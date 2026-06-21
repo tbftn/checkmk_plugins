@@ -1,5 +1,9 @@
 [PACKAGE]: packages/checkpoint_powersupply-0.1.1.mkp "checkpoint_powersupply-0.1.1.mkp"
-# Check Point Power Supply
+# Check Point Power Supply [DEPRECATED]
+
+> [!caution]
+> This MKP is no longer being maintained, as its functionality has been incorporated into Checkmk's built-in check and is being continuously maintained there (e.g., Werks [19680](https://checkmk.com/werk/19680), [19978](https://checkmk.com/werk/19978)).
+
 This check will monitor the *state* of Check Point Power Supplys.
 
 It is an **enhanced replacement** for the original Checkmk check *checkpoint_powersupply*.
