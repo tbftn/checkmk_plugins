@@ -28,14 +28,14 @@ def _parameter_form_checkpoint_voltage():
         elements={
             "state_sensor_out_of_range": DictElement(
                 parameter_form=ServiceState(
-                    title=Title("State if the voltage sensor is out of range"),
+                    title=Title("State when the voltage sensor is out of range"),
                     help_text=Help("Default monitoring state if the voltage sensor is out of range."),
                     prefill=DefaultValue(2)
                 )
             ),
             "state_reading_error": DictElement(
                 parameter_form=ServiceState(
-                    title=Title("Status if the voltage sensor has a reading error"),
+                    title=Title("State when the voltage sensor has a reading error"),
                     help_text=Help("Default monitoring state if the voltage sensor has a reading error."),
                     prefill=DefaultValue(3)
                 )
