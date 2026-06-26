@@ -5,6 +5,8 @@ Each plugin lives in its own folder and has its own `README.md` with details.
 ## Plugin overview
 
 ### Check Point
+- [**Fan**](checkpoint_fan/): Monitor *fan sensors* on Check Point Firewalls and Appliances
+
 - [**Power Supply \[DEPRECATED\]**](checkpoint_powersupply/): Monitor the *state* of Power Supplys from Check Point Appliances
 
 - [**Voltage**](checkpoint_voltage/): Monitor *voltage sensors* in Check Point Firewalls and Appliances
