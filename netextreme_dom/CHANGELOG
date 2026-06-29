@@ -1,3 +1,6 @@
+2026-06-29 (0.1.2):
+    Fix: The status 'CRIT' was generated instead of 'WARN' when a sensor was in the 'HighWarning' state
+
 2026-06-20 (0.1.1):
     Cleaned up plugin, graphing and ruleset code
     Improved threshold and default value handling

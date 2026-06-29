@@ -224,7 +224,7 @@ def check_netextreme_dom(item, params, section):
                 elif cst_state == 4: # normal
                     yield Result(state=State.OK, summary = '%s: %s dBm' %(sensor, value))
                 elif cst_state == 5: # highWarning
-                    yield Result(state=State.CRIT, summary = high_message)
+                    yield Result(state=State.WARN, summary = high_message)
                 elif cst_state == 6: # highAlarm
                     yield Result(state=State.CRIT, summary = high_message)
                 else: # unknown
