@@ -4,7 +4,7 @@
 # Date   : 2026-07-07
 # License: GNU General Public License v2
 #
-# Ruleset: VMware Avi Load Balancer - Service Engines CPU
+# Ruleset: VMware Avi Load Balancer - Service Engines Disk
 
 
 from cmk.rulesets.v1 import Title
@@ -24,12 +24,12 @@ from cmk.rulesets.v1.rule_specs import (
 )
 
 
-def parameter_form_vmware_avi_se_cpu():
+def parameter_form_vmware_avi_se_disk():
     return Dictionary(
         elements={
-            "util": DictElement(
+            "usage": DictElement(
                 parameter_form=SimpleLevels(
-                    title=Title("Upper Levels for CPU utilization"),
+                    title=Title("Upper Levels for Disk usage"),
                     level_direction=LevelDirection.UPPER,
                     form_spec_template=Percentage(),
                     prefill_levels_type=DefaultValue(LevelsType.FIXED),
@@ -40,10 +40,10 @@ def parameter_form_vmware_avi_se_cpu():
     )
 
 
-rule_spec_vmware_avi_se_cpu = CheckParameters(
-    name="vmware_avi_se_cpu",
-    title=Title("VMware Avi Service Engine CPU"),
+rule_spec_vmware_avi_se_disk = CheckParameters(
+    name="vmware_avi_se_avi",
+    title=Title("VMware Avi Service Engine Disk"),
     topic=Topic.VIRTUALIZATION,
     condition = HostCondition(),
-    parameter_form=parameter_form_vmware_avi_se_cpu,
+    parameter_form=parameter_form_vmware_avi_se_disk,
 )

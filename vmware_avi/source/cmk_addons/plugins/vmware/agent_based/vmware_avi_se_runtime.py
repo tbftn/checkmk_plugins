@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Service Engine Runtime
@@ -15,17 +15,10 @@
 #     'license_state': 'LICENSE_STATE_LICENSED'
 # }
 
-import itertools
-import json
 
-from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, State, render, Result
+from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal, yield_mapped_result
+from cmk.agent_based.v2 import AgentSection, CheckPlugin, Service, State, Result
 
-
-def parse_vmware_avi_se_runtime(string_table):
-    
-    flatlist = list(itertools.chain.from_iterable(string_table))
-    parsed = json.loads(" ".join(flatlist).replace("'", "\""))
-    return parsed
 
 def discover_vmware_avi_se_runtime(section):
     yield Service()
@@ -33,27 +26,35 @@ def discover_vmware_avi_se_runtime(section):
 
 def check_vmware_avi_se_runtime(section):
     
-    if section['state'] == "OPER_UP":
-        yield Result(state=State.OK, summary=f"State: {section['state']}")
-    else:
-        yield Result(state=State.CRIT, summary=f"State: {section['state']}")
+    map_state = {
+        "OPER_UP": {"cmk": 0, "str": "Up"},
+        "OPER_DONW": {"cmk": 2, "str": "Down"},
+    }
 
-    if section['power_state'] == "SE_POWER_ON":
-        yield Result(state=State.OK, summary=f"Power: {section['power_state']}")
-    else:
-        yield Result(state=State.CRIT, summary=f"Power: {section['power_state']}")
+    map_power_state = {
+        "SE_POWER_ON": {"cmk": 0, "str": "On"},
+    }
 
-    if section['license_state'] == "LICENSE_STATE_LICENSED":
-        yield Result(state=State.OK, summary=f"License: {section['license_state']}")
-    else:
-        yield Result(state=State.WARN, summary=f"License: {section['license_state']}")
+    map_license_state = {
+        "LICENSE_STATE_LICENSED": {"cmk": 0, "str": "Ok"},
+    }
 
+    # state
+    yield from yield_mapped_result(section['state'], map_state, "State")
+
+    # power state
+    yield from yield_mapped_result(section['power_state'], map_power_state, "Power")
+
+    # license state
+    yield from yield_mapped_result(section['license_state'], map_license_state, "License")
+
+    # version
     yield Result(state=State.OK, summary=f"Version: {section['version']}")
     
 
 agent_section_vmware_avi_se_runtime = AgentSection(
     name = "vmware_avi_se_runtime",
-    parse_function = parse_vmware_avi_se_runtime,
+    parse_function = parse_python_literal,
 )
 
 

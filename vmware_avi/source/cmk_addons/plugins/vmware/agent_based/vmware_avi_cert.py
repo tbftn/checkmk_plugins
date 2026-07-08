@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Certificates
@@ -21,23 +21,8 @@
 # {...}
 
 
-import ast
-import itertools
-
-
+from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal, yield_mapped_result
 from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, State, render, Result
-
-
-def parse_vmware_avi_cert(string_table):
-
-    parsed = []
-    flatlist = list(itertools.chain.from_iterable(string_table))
-    
-    for f in flatlist:
-        i = ast.literal_eval(f)
-        parsed.append(i)
-
-    return parsed
 
 
 def discover_vmware_avi_cert(section):
@@ -47,21 +32,22 @@ def discover_vmware_avi_cert(section):
 
 def check_vmware_avi_cert(item, params, section):
 
+    map_state = {
+        "SSL_CERTIFICATE_FINISHED": {"cmk": 0, "str": "Finished"},
+    }
+
     for cert in section:
 
         if f"{cert['name']}" != item:
             continue
         
-        # Status
-        if cert['status'] == "SSL_CERTIFICATE_FINISHED":
-            yield Result(state=State.OK, summary=f"Status: {cert['status']}")
-        else:
-            yield Result(state=State.CRIT, summary=f"Status: {cert['status']}")
+        # state
+        yield from yield_mapped_result(cert['status'], map_state, "State")
 
-        # Valid until
+        # valid until
         yield Result(state=State.OK, summary=f"Valid until: {cert['not_after']}")
         
-        # Days expire
+        # days expire
         yield from check_levels(
             cert['diff_not_after'],
             label="Time until expire",
@@ -71,14 +57,17 @@ def check_vmware_avi_cert(item, params, section):
         )
 
         # self-signed
-        yield Result(state=State.OK, summary=f"Self signed: {"Yes" if cert['self_signed'] else "No"}")
+        if cert['self_signed']:
+            yield Result(state=State(params['state_self_signed']), summary=f"Self signed: Yes")
+        else:
+            yield Result(state=State.OK, summary="Self signed: No")
 
     return None
 
 
 agent_section_vmware_avi_cert = AgentSection(
     name = "vmware_avi_cert",
-    parse_function = parse_vmware_avi_cert,
+    parse_function = parse_python_literal,
 )
 
 
@@ -89,6 +78,7 @@ check_plugin_vmware_avi_cert = CheckPlugin(
     check_function = check_vmware_avi_cert,
     check_default_parameters = {
         "days_until_expire": ("fixed", (7776000, 2592000)), # 90 days, 30 days
+        "state_self_signed": 1,
     },
     check_ruleset_name = "vmware_avi_cert",
 )

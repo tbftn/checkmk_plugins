@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Clouds
@@ -14,23 +14,9 @@
 # },
 # {...}
 
-import ast
-import itertools
 
-
-from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, State, render, Result
-
-
-def parse_vmware_avi_cloud(string_table):
-
-    parsed = []
-    flatlist = list(itertools.chain.from_iterable(string_table))
-    
-    for f in flatlist:
-        i = ast.literal_eval(f)
-        parsed.append(i)
-
-    return parsed
+from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal, yield_mapped_result
+from cmk.agent_based.v2 import AgentSection, CheckPlugin, Service
 
 
 def discover_vmware_avi_cloud(section):
@@ -38,9 +24,11 @@ def discover_vmware_avi_cloud(section):
         yield Service(item = f"{cloud['name']}")
 
 
-def check_vmware_avi_cloud(item, section):
+def check_vmware_avi_cloud(item, params, section):
 
     map_state = {
+        "CLOUD_STATE_FAILED": {"cmk": params['state_failed'], "str": "Failed"},
+        "CLOUD_STATE_IN_PROGRESS": {"cmk": params['state_in_progress'], "str": "In progress"},
         "CLOUD_STATE_PLACEMENT_READY": {"cmk": 0, "str": "Ready"},
     }
 
@@ -49,18 +37,15 @@ def check_vmware_avi_cloud(item, section):
         if f"{cloud['name']}" != item:
             continue
 
-        # State
-        if cloud['state'] in map_state:
-            yield Result(state=State(map_state[cloud['state']]["cmk"]), summary=f"State: {map_state[cloud['state']]["str"]}")
-        else:
-            yield Result(state=State(3), summary=f"State: {cloud['state']}")
+        # state
+        yield from yield_mapped_result(cloud['state'], map_state, "State")
 
     return None
 
 
 agent_section_vmware_avi_cloud = AgentSection(
     name = "vmware_avi_cloud",
-    parse_function = parse_vmware_avi_cloud,
+    parse_function = parse_python_literal,
 )
 
 
@@ -69,4 +54,9 @@ check_plugin_vmware_avi_cloud = CheckPlugin(
     service_name = "Avi Cloud %s",
     discovery_function = discover_vmware_avi_cloud,
     check_function = check_vmware_avi_cloud,
+    check_default_parameters = {
+        "state_failed": 2,
+        "state_in_progress": 1,
+    },
+    check_ruleset_name = "vmware_avi_cloud",
 )

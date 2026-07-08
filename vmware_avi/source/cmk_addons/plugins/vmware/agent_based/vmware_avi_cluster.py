@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Cluster
@@ -20,17 +20,8 @@
 # }
 
 
-import itertools
-import json
-
+from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal, yield_mapped_result
 from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, State, render, Result
-
-
-def parse_vmware_avi_cluster(string_table):
-
-    flatlist = list(itertools.chain.from_iterable(string_table))
-    parsed = json.loads(" ".join(flatlist).replace("'", "\""))
-    return parsed
 
 
 def discover_vmware_avi_cluster(section):
@@ -43,14 +34,15 @@ def check_vmware_avi_cluster(section):
         "CLUSTER_UP_HA_ACTIVE": {"cmk": 0, "str": "Active"},
     }
 
-    # State
-    if section['state'] in map_state:
-        yield Result(state=State(map_state[section['state']]["cmk"]), summary=f"State: {map_state[section['state']]["str"]}")
-    else:
-        yield Result(state=State(3), summary=f"State: {section['state']}")
+    # state
+    yield from yield_mapped_result(section['state'], map_state, "State")
 
-    # Version
-    yield Result(state=State.OK, summary=f"Version: {section['version']}, Patch: {section['patch']}")
+    # version
+    yield Result(state=State.OK, summary=f"Version: {section['version']}")
+
+    # patch
+    if section['patch']:
+        yield Result(state=State.OK, summary=f"Patch: {section['patch']}")
 
     # Uptime
     yield from check_levels(
@@ -73,7 +65,7 @@ def check_vmware_avi_cluster(section):
 
 agent_section_vmware_avi_cluster = AgentSection(
     name = "vmware_avi_cluster",
-    parse_function = parse_vmware_avi_cluster,
+    parse_function = parse_python_literal,
 )
 
 

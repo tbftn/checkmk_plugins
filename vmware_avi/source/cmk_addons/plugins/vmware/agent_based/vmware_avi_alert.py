@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Alerts
@@ -18,22 +18,8 @@
 # {...}
 
 
-import ast
-import itertools
-
+from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal
 from cmk.agent_based.v2 import AgentSection, CheckPlugin, Service, State, Result
-
-
-def parse_vmware_avi_alert(string_table):
-
-    parsed = []
-    flatlist = list(itertools.chain.from_iterable(string_table))
-    
-    for f in flatlist:
-        i = ast.literal_eval(f)
-        parsed.append(i)
-
-    return parsed
 
 
 def discover_vmware_avi_alert(section):
@@ -59,7 +45,7 @@ def check_vmware_avi_alert(section):
 
 agent_section_vmware_avi_alert = AgentSection(
     name = "vmware_avi_alert",
-    parse_function = parse_vmware_avi_alert,
+    parse_function = parse_python_literal,
 )
 
 

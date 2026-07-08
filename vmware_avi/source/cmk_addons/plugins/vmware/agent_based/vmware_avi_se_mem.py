@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Site Engines CPU
@@ -15,17 +15,8 @@
 # }
 
 
-import itertools
-import json
-
-from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, State, render, Result
-
-
-def parse_vmware_avi_se_mem(string_table):
-    
-    flatlist = list(itertools.chain.from_iterable(string_table))
-    parsed = json.loads(" ".join(flatlist).replace("'", "\""))
-    return parsed
+from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal
+from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, render
 
 
 def discover_vmware_avi_se_mem(section):
@@ -35,13 +26,13 @@ def discover_vmware_avi_se_mem(section):
 def check_vmware_avi_se_mem(params, section):
     
     map_mem = {
-        "mem_usage": "Memory usage",
-        "con_mem_usage": "Connection memory usage",
-        "dyn_mem_usage": "Dynamic memory usage",
+        "mem_usage": "Memory",
+        "con_mem_usage": "Connection memory",
+        "dyn_mem_usage": "Dynamic memory",
     }
 
     for m in map_mem:
-        if m in section:
+        if section.get(m, None) != None:
             yield from check_levels(
                 section[m],
                 label=map_mem[m],
@@ -54,7 +45,7 @@ def check_vmware_avi_se_mem(params, section):
 
 agent_section_vmware_avi_se_mem = AgentSection(
     name = "vmware_avi_se_mem",
-    parse_function = parse_vmware_avi_se_mem,
+    parse_function = parse_python_literal,
 )
 
 

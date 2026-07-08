@@ -2,7 +2,7 @@
 #-*- encoding: utf-8
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Libexec: VMware Avi Load Balancer
@@ -13,11 +13,15 @@ import requests
 import sys
 import urllib3
 
+from collections.abc import Mapping, Sequence
 from datetime import datetime, timezone
 from requests import Response, Session
 from typing import Dict, Any, List, Optional
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+_MISSING = object()
 
 
 def parse_arguments(argv):
@@ -33,6 +37,64 @@ def parse_arguments(argv):
     args = parser.parse_args(argv)
     
     return args
+
+
+def dig(obj, *path, default=None, expected_type=None, remove_chars=None):
+    """
+    Sicherer Zugriff auf verschachtelte Dicts und Listen.
+
+    Optional kann der gefundene Wert in einen Zieltyp konvertiert werden.
+    Bei Fehlern wird `default` zurückgegeben.
+
+    Beispiele:
+        dig(data, "value")
+        dig(data, "value", expected_type=float)
+        dig(data, "value", expected_type=float, remove_chars=["%"])
+        dig(data, "price", expected_type=float, remove_chars=["€", "%"])
+
+    Args:
+        obj: Das Startobjekt.
+        *path: Keys oder Listenindizes.
+        default: Rückgabewert bei fehlgeschlagenem Zugriff oder Konvertierung.
+        expected_type: Optionaler Zieltyp, z.B. int, float, str.
+        remove_chars: Optional Liste von Zeichen/Strings, die vor der Konvertierung entfernt werden.
+
+    Returns:
+        Der gefundene Wert, ggf. konvertiert, oder `default`.
+    """
+    current = obj
+
+    for key in path:
+        try:
+            if isinstance(current, Mapping):
+                current = current.get(key, _MISSING)
+            elif isinstance(current, Sequence) and not isinstance(current, (str, bytes)):
+                current = current[key]
+            else:
+                return default
+        except (KeyError, IndexError, TypeError):
+            return default
+
+        if current is _MISSING:
+            return default
+
+    if expected_type is not None:
+        try:
+            if isinstance(current, str):
+                current = current.strip()
+
+                if remove_chars:
+                    for char in remove_chars:
+                        current = current.replace(char, "")
+
+                current = current.strip()
+
+            current = expected_type(current)
+
+        except (ValueError, TypeError):
+            return default
+
+    return current
 
  
 class VmmareAviLoadBalancerAgent():
@@ -90,10 +152,6 @@ class VmmareAviLoadBalancerAgent():
         )
 
     def login(self) -> None:
-        """
-        Baut eine Session ber /login auf.
-        Laut API-Doku liefert der Controller sessionid und csrftoken als Cookies zurck.
-        """
         url = f"{self.base_url}/login"
         payload = {
             "username": self.username,
@@ -112,9 +170,6 @@ class VmmareAviLoadBalancerAgent():
             raise Exception("Login erfolgreich, aber kein 'sessionid'-Cookie erhalten.")
 
     def logout(self) -> None:
-        """
-        Beendet die Session ber /logout.
-        """
         url = f"{self.base_url}/logout"
         response = self.session.post(
             url,
@@ -153,6 +208,12 @@ class VmmareAviLoadBalancerAgent():
         return self.get(f"/cloud-inventory")
 
     # ServiceEngine
+    def get_serviceengine_cpu(self, uuid: str):
+        return self.get(f"/serviceengine/{uuid}/cpu")
+
+    def get_serviceengine_seagent(self, uuid: str):
+        return self.get(f"/serviceengine/{uuid}/seagent")
+
     def get_serviceengines_inventory(self, metrics=[], limit=1):
         params = {
             "metric_id": ",".join(metrics),
@@ -229,14 +290,14 @@ if __name__ == "__main__":
                 sys.stdout.write(f"<<<vmware_avi_cert:sep(0)>>>\n")
                 for cert in result['results']:
                     tmp_cert = {
-                        "name": cert['name'],
-                        "status": cert['status'],
-                        "ocsp_error_status": cert['ocsp_error_status'],
-                        "expire_status": cert['certificate']['expiry_status'],
-                        "not_before": cert['certificate']['not_before'],
-                        "not_after": cert['certificate']['not_after'],
+                        "name": dig(cert, "name"),
+                        "status": dig(cert, "status"),
+                        "ocsp_error_status": dig(cert, "ocsp_error_status"),
+                        "expire_status": dig(cert, "certificate", "expiry_status"),
+                        "not_before": dig(cert, "certificate", "not_before"),
+                        "not_after": dig(cert, "certificate", "not_after"),
                         "diff_not_after": ((datetime.strptime(cert['certificate']['not_after'], "%Y-%m-%d %H:%M:%S")) - datetime.now()).total_seconds(),
-                        "self_signed": cert['certificate']['self_signed'],
+                        "self_signed": dig(cert, "certificate", "self_signed"),
                     }
                     sys.stdout.write(f"{tmp_cert}\n")
 
@@ -247,9 +308,9 @@ if __name__ == "__main__":
             if len(result) > 0:
                 sys.stdout.write(f"<<<vmware_avi_cluster:sep(0)>>>\n")
                 tmp_cluster = {
-                    "version": result['node_info']['version'],
-                    "patch": result['node_info']['patch'],
-                    "state": result['cluster_state']['state'],
+                    "version": dig(result, "node_info", "version"),
+                    "patch": dig(result, "node_info", "patch"),
+                    "state": dig(result, "cluster_state", "state"),
                     "uptime":  (datetime.now() - (datetime.strptime(result['cluster_state']['up_since'], "%Y-%m-%d %H:%M:%S"))).total_seconds(),
                     "services": [],
                 }
@@ -266,9 +327,9 @@ if __name__ == "__main__":
                     sys.stdout.write(f"<<<vmware_avi_node:sep(0)>>>\n")
                     for n in result['node_states']:
                         tmp_node = {
-                            "name": n['name'],
-                            "state": n['state'],
-                            "role": n['role'],
+                            "name": dig(n, "name"),
+                            "state": dig(n, "state"),
+                            "role": dig(n, "role"),
                             "uptime": (datetime.now() - (datetime.strptime(n['up_since'], "%Y-%m-%d %H:%M:%S"))).total_seconds(),
                         }
                         sys.stdout.write(f"{tmp_node}\n")
@@ -283,8 +344,8 @@ if __name__ == "__main__":
                 for cloud in result['results']:
 
                     tmp_cloud = {
-                        "name": cloud['config']['name'],
-                        "state": cloud['status']['state'],
+                        "name": dig(cloud, "config", "name"),
+                        "state": dig(cloud, "status", "state"),
                     }
                     sys.stdout.write(f"{tmp_cloud}\n")
 
@@ -292,7 +353,6 @@ if __name__ == "__main__":
         if 'service_engine' in args.sections or 'all' in args.sections:
             metrics = [
                 "se_if.avg_bandwidth",
-                "se_stats.avg_cpu_usage",
                 "se_stats.avg_mem_usage",
                 "se_if.avg_rx_pkts",
                 "se_if.avg_tx_pkts",
@@ -310,19 +370,31 @@ if __name__ == "__main__":
             # PIGGYBACK
             if len(result['results']) > 0:
                 for se in result['results']:
+                    if dig(se, "config", "name") == None:
+                        continue
+
                     sys.stdout.write(f"<<<<{se['config']['name']}>>>>\n")
 
                     # alert
                     sys.stdout.write(f"<<<vmware_avi_se_alert:sep(0)>>>\n")
-                    alert = se['alert']
+                    alert = dig(se, "alert")
                     sys.stdout.write(f"{alert}\n")
 
                     # cpu
+                    se_cpu = avi_agent.get_serviceengine_cpu(se['uuid'])
                     sys.stdout.write(f"<<<vmware_avi_se_cpu:sep(0)>>>\n")
                     cpu = {
-                        "cpu_usage": se['metrics']['se_stats.avg_cpu_usage']['value'],
+                        "cpu_usage": dig(se_cpu, 0, "total_cpu_utilization"),
                     }
                     sys.stdout.write(f"{cpu}\n")
+
+                    # diskusage
+                    se_agent = avi_agent.get_serviceengine_seagent(se['uuid'])
+                    sys.stdout.write(f"<<<vmware_avi_se_disk:sep(0)>>>\n")
+                    disk_usage = {
+                        "disk_usage": dig(se_agent, 0, "disk_space_usage", "percentage_used", expected_type=float, remove_chars=["%"]),
+                    }
+                    sys.stdout.write(f"{disk_usage}\n")
 
                     # healthscore
                     sys.stdout.write(f"<<<vmware_avi_se_health:sep(0)>>>\n")
@@ -330,10 +402,10 @@ if __name__ == "__main__":
                     sys.stdout.write(f"{health}\n")
 
                     # heartbeat
-                    sys.stdout.write(f"<<<vmware_avi_se_hb:hb(0)>>>\n")
+                    sys.stdout.write(f"<<<vmware_avi_se_hb:sep(0)>>>\n")
                     hb = {
-                        "hb_misses": se['runtime']['hb_status']['num_hb_misses'],
-                        "hb_outstanding": se['runtime']['hb_status']['num_outstanding_hb'],
+                        "hb_misses": dig(se, "runtime", "hb_status", "num_hb_misses"),
+                        "hb_outstanding": dig(se, "runtime", "hb_status", "num_outstanding_hb"),
                         "last_hb_req_sent": avi_time_diff_seconds(se['runtime']['hb_status']['last_hb_req_sent']),
                         "last_hb_resp_recv": avi_time_diff_seconds(se['runtime']['hb_status']['last_hb_resp_recv']),
                     }
@@ -342,10 +414,10 @@ if __name__ == "__main__":
                     # runtime
                     sys.stdout.write(f"<<<vmware_avi_se_runtime:sep(0)>>>\n")
                     runtime = {
-                        "state": se['runtime']['oper_status']['state'],
-                        "power_state": se['runtime']['power_state'],
-                        "version": se['runtime']['version'],
-                        "license_state": se['runtime']['license_state'],
+                        "state": dig(se,"runtime", "oper_status", "state"),
+                        "power_state": dig(se, "runtime", "power_state"),
+                        "version": dig(se, "runtime", "version"),
+                        "license_state": dig(se, "runtime", "license_state"),
                     }
                     sys.stdout.write(f"{runtime}\n")
 
@@ -363,9 +435,9 @@ if __name__ == "__main__":
                     # memory
                     sys.stdout.write(f"<<<vmware_avi_se_mem:sep(0)>>>\n")
                     mem = {
-                        "mem_usage": se['metrics']['se_stats.avg_mem_usage']['value'],
-                        "con_mem_usage": se['metrics']['se_stats.avg_connection_mem_usage']['value'],
-                        "dyn_mem_usage": se['metrics']['se_stats.avg_dynamic_mem_usage']['value'],
+                        "mem_usage": dig(se,"metrics", "se_stats.avg_mem_usage", "value", expected_type=float),
+                        "con_mem_usage": dig(se, "metrics", "se_stats.avg_connection_mem_usage", "value", expected_type=float),
+                        "dyn_mem_usage": dig(se, "metrics", "se_stats.avg_dynamic_mem_usage", "value", expected_type=float),
                     }
                     sys.stdout.write(f"{mem}\n")
 
@@ -374,7 +446,7 @@ if __name__ == "__main__":
                     dt = datetime.strptime(se['runtime']['online_since'], "%Y-%b-%d %H:%M:%S")
                     sys.stdout.write(f"{(datetime.now() - dt).total_seconds()}\n")
 
-                    sys.stdout.write(f"<<<<>>>>\n") # end of piggyback host
+                    sys.stdout.write("<<<<>>>>\n") # end of piggyback host
 
             # === END PIGGYBACK
 

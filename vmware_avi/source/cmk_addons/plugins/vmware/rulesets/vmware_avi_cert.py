@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Ruleset: VMware Avi Load Balancer - Certificates
 
 
-from cmk.rulesets.v1 import Title
+from cmk.rulesets.v1 import Help, Title
 from cmk.rulesets.v1.form_specs import (
     DefaultValue,
     DictElement,
     Dictionary,
     LevelDirection,
     LevelsType,
+    ServiceState,
     SimpleLevels,
     TimeSpan,
     TimeMagnitude,
@@ -25,15 +26,22 @@ from cmk.rulesets.v1.rule_specs import CheckParameters, HostAndItemCondition, To
 def parameter_form_vmware_avi_cert():
     return Dictionary(
         elements={
-            'days_until_expire': DictElement(
+            "days_until_expire": DictElement(
                 parameter_form=SimpleLevels(
-                    title=Title('Days until expiration'),
+                    title=Title("Days until expiration"),
                     prefill_levels_type=DefaultValue(LevelsType.FIXED),
                     level_direction=LevelDirection.LOWER,
                     form_spec_template=TimeSpan(displayed_magnitudes=[TimeMagnitude.DAY]),
                     prefill_fixed_levels=DefaultValue(value=(90.0 * 86400, 30.0 * 86400))
                 )
             ),
+            "state_self_signed": DictElement(
+                parameter_form=ServiceState(
+                    title=Title("State when certifcate is self-signed"),
+                    help_text=Help("Default monitoring state if certifcate is self-signed."),
+                    prefill=DefaultValue(1)
+                ),
+            )
         }
     )
 

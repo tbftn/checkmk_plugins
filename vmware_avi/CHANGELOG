@@ -1,2 +1,14 @@
+2026-07-08 (0.2.0):
+    Added Service Engine Disk monitoring (vmware_avi_se_disk)
+    Added configurable rulesets for Cloud
+    Added configurable monitoring states for VMware Avi Cloud states "Failed" and "In progress"
+    Added configurable monitoring state for self-signed certificates
+    Added configurable monitoring state for Virtual Services in "Down" state
+    Improved data collection by introducing a unified parsing function with better handling of missing API values
+    Switched Service Engine interface metrics to built-in Checkmk metrics
+    Changed Service Engine CPU monitoring to use the dedicated CPU API endpoint
+    Fixed heartbeat agent section format
+    Various stability improvements and code cleanup
+
 2026-04-24 (0.1.0):
 	init release

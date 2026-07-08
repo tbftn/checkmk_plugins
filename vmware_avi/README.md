@@ -1,8 +1,8 @@
-[PACKAGE]: packages/vmware_avi-0.1.0.mkp "vmware_avi-0.1.0.mkp"
+[PACKAGE]: packages/vmware_avi-0.2.0.mkp "vmware_avi-0.2.0.mkp"
 # VMware Avi Load Balancer (Special Agent)
 
 > [!note]
-> This MKP is an early version (0.1.0) and not final yet. Feedback, suggestions, and improvements are very welcome.
+> This MKP is an early version (0.2.0) and not final yet. Feedback, suggestions, and improvements are very welcome.
 
 This Special Agent can monitor the following sections:
 - Alerts
@@ -10,6 +10,13 @@ This Special Agent can monitor the following sections:
 - Cloud
 - Cluster and Nodes
 - Service Engines (as hosts with piggyback data)
+    - CPU
+    - Disk
+    - Health
+    - Heartbeat
+    - Interface
+    - Memory
+    - Runtime
 - Virtual Services
 
 To access the VMware Avi Load Balancer, you need a user with the appropriate permissions. Then, enter the access credentials in the "Other Integrations" section of the VMware Avi Load Balancer rule set.
@@ -104,8 +111,8 @@ Create one service **Avi Alerts**.
 - Alerts: CRIT if at least one alarm (low, medium or high) is present
 </details>
 
-**<details><summary>CPU utilization</summary>**
-Create one service **Avi CPU utilization**.
+**<details><summary>CPU</summary>**
+Create one service **Avi CPU**.
 
 **Monitors**
 - Total CPU: WARN/CRIT if higher than 80%/90% (configurable)
@@ -113,6 +120,17 @@ Create one service **Avi CPU utilization**.
 **Metrics**
 - CPU utilization (%)
 </details>
+
+**<details><summary>Disk</summary>**
+Create one service **Avi Disk**.
+
+**Monitors**
+- Usage: WARN/CRIT if higher than 80%/90% (configurable)
+
+**Metrics**
+- Used space (%)
+</details>
+
 
 **<details><summary>Health</summary>**
 Create one service **Avi Health**.

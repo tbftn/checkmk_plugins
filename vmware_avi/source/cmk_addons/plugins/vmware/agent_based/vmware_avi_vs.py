@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Virtual Serivces
@@ -36,23 +36,8 @@
 # }
 
 
-import ast
-import itertools
-
-
+from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal, yield_mapped_result
 from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, State, render, Result
-
-
-def parse_vmware_avi_vs(string_table):
-
-    parsed = []
-    flatlist = list(itertools.chain.from_iterable(string_table))
-    
-    for f in flatlist:
-        i = ast.literal_eval(f)
-        parsed.append(i)
-
-    return parsed
 
 
 def discover_vmware_avi_vs(section):
@@ -65,7 +50,7 @@ def check_vmware_avi_vs(item, params, section):
 
     map_state = {
         "OPER_UP": {"cmk": 0, "str": "Up"},
-        "OPER_DOWN": {"cmk": 2, "str": "Down"}
+        "OPER_DOWN": {"cmk": params['state_vs_down'], "str": "Down"}
     }
 
     for vs in section:
@@ -73,13 +58,10 @@ def check_vmware_avi_vs(item, params, section):
         if f"{vs['name']}" != item:
             continue
 
-        # State
-        if vs['state'] in map_state:
-            yield Result(state=State(map_state[vs['state']]["cmk"]), summary=f"State: {map_state[vs['state']]["str"]}")
-        else:
-            yield Result(state=State(3), summary=f"State: {vs['state']}")
-        
-        # Healt Score: for virtual services only the health data...
+        # state
+        yield from yield_mapped_result(vs['state'], map_state, "State")
+
+        # health score: for virtual services only the health data...
         yield from check_levels(
             vs['health_score'],
             label="Health Score",
@@ -89,7 +71,7 @@ def check_vmware_avi_vs(item, params, section):
             boundaries=(0, 100)
         )
 
-        # Service Engines requested/assigend, only print id assigned is lower than requested
+        # service engines requested/assigend, only print id assigned is lower than requested
         if vs['num_se_assigned'] < vs['num_se_requested']:
             yield Result(state=State(params['state_lower_se_avail_as_req']), summary=f"Service Engines requested/assigend: {vs['num_se_requested']}/{vs['num_se_assigned']}")
 
@@ -98,7 +80,7 @@ def check_vmware_avi_vs(item, params, section):
             if se['connected'] != True:
                 yield Result(state=State(params['state_se_not_connected']), summary=f"Service Engine {se['uuid']} not connected")
 
-        # Requests per Second
+        # requests per Second
         yield from check_levels(
             vs['rps'],
             label="RPS",
@@ -106,7 +88,7 @@ def check_vmware_avi_vs(item, params, section):
             metric_name="vmware_avi_rps",
         )
 
-        # Connections per Second
+        # connections per Second
         yield from check_levels(
             vs['cps'],
             label="CPS",
@@ -114,7 +96,7 @@ def check_vmware_avi_vs(item, params, section):
             metric_name="vmware_avi_cps",
         )
 
-        # Open Connections
+        # open connections
         yield from check_levels(
             vs['open_conns'],
             label="Open connections",
@@ -122,7 +104,7 @@ def check_vmware_avi_vs(item, params, section):
             metric_name="vmware_avi_open_conns",
         )
 
-        # Throughput
+        # throughput
         yield from check_levels(
             vs['throughput'],
             label="Throughput",
@@ -143,7 +125,7 @@ def check_vmware_avi_vs(item, params, section):
 
 agent_section_vmware_avi_vs = AgentSection(
     name = "vmware_avi_vs",
-    parse_function = parse_vmware_avi_vs,
+    parse_function = parse_python_literal,
 )
 
 
@@ -153,9 +135,10 @@ check_plugin_vmware_avi_vs = CheckPlugin(
     discovery_function = discover_vmware_avi_vs,
     check_function = check_vmware_avi_vs,
     check_default_parameters = {
-        "state_lower_se_avail_as_req": 1, # WARN
-        "state_se_not_connected": 2, # CRIT
-        "health_score_levels_lower": ("fixed", (90, 60)), # in %
+        "state_vs_down": 2,
+        "state_lower_se_avail_as_req": 1,
+        "state_se_not_connected": 2,
+        "health_score_levels_lower": ("fixed", (90, 60)),
     },
     check_ruleset_name = "vmware_avi_vs",
 )

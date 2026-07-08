@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Site Engines Interface
@@ -17,17 +17,8 @@
 # }
 
 
-import itertools
-import json
-
-from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, State, render, Result
-
-
-def parse_vmware_avi_se_if(string_table):
-    
-    flatlist = list(itertools.chain.from_iterable(string_table))
-    parsed = json.loads(" ".join(flatlist).replace("'", "\""))
-    return parsed
+from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal
+from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, render
 
 
 def discover_vmware_avi_se_if(section):
@@ -40,44 +31,43 @@ def check_vmware_avi_se_if(section):
         section['throughput'],
         label="Throughput",
         render_func=lambda v: f'{render.networkbandwidth(v/8)}',
-        metric_name="vmware_avi_throughput",
+        metric_name="if_total_bps", # build-in checkmk metric
     )
 
     yield from check_levels(
         section['rx_bits'],
         label="In",
         render_func=lambda v: f'{render.networkbandwidth(v/8)}',
-        metric_name="vmware_avi_se_if_rx_bits",
+        metric_name="if_in_bps", # build-in checkmk metric
     )
 
     yield from check_levels(
         section['tx_bits'],
         label="Out",
         render_func=lambda v: f'{render.networkbandwidth(v/8)}',
-        metric_name="vmware_avi_se_if_tx_bits",
+        metric_name="if_out_bps", # build-in checkmk metric
     )
 
     yield from check_levels(
         section['rx_packets'],
-        label="RX packtes",
+        label="Input packtes",
         render_func=lambda v: f'{round(v, 2)} packets/s',
-        metric_name="vmware_avi_se_if_rx_packtes",
+        metric_name="if_in_pkts", # build-in checkmk metric
         notice_only=True,
     )
 
     yield from check_levels(
         section['tx_packets'],
-        label="TX packets",
+        label="Output packtes",
         render_func=lambda v: f'{round(v, 2)} packets/s',
-        metric_name="vmware_avi_se_if_tx_packtes",
+        metric_name="if_out_pkts", # build-in checkmk metric
         notice_only=True,
     )
 
-    
 
 agent_section_vmware_avi_se_if = AgentSection(
     name = "vmware_avi_se_if",
-    parse_function = parse_vmware_avi_se_if,
+    parse_function = parse_python_literal,
 )
 
 

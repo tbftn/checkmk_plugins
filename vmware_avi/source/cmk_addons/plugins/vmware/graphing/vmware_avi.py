@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # 
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-07
 # License: GNU General Public License v2
 #
 # Graphing: VMware Avi Load Balancer
@@ -129,77 +129,6 @@ metric_vmware_avi_se_if_throughput = Metric(
     unit = Unit(SINotation("bit/s")),
     color = Color.YELLOW
 )
-
-metric_vmware_avi_se_if_rx_packtes = Metric(
-    name = "vmware_avi_se_if_rx_packtes",
-    title = Title("Input packtes"),
-    unit = Unit(DecimalNotation("/s"), StrictPrecision(2)),
-    color = Color.GREEN
-)
-
-metric_vmware_avi_se_if_tx_packtes = Metric(
-    name = "vmware_avi_se_if_tx_packtes",
-    title = Title("Output packtes"),
-    unit = Unit(DecimalNotation("/s"), StrictPrecision(2)),
-    color = Color.BLUE
-)
-
-metric_vmware_avi_se_if_rx_bits = Metric(
-    name = "vmware_avi_se_if_rx_bits",
-    title = Title("Input bandwith"),
-    unit = Unit(SINotation("bit/s")),
-    color = Color.GREEN
-)
-
-metric_vmware_avi_se_if_tx_bits = Metric(
-    name = "vmware_avi_se_if_tx_bits",
-    title = Title("Output bandwith"),
-    unit = Unit(SINotation("bit/s")),
-    color = Color.BLUE
-)
-
-graph_vmware_avi_se_if_bits = Bidirectional(
-    name = "vmware_avi_se_if_bandwith",
-    title = Title("Bandwith"),
-    upper = Graph(
-        name="upper",
-        title=Title("Input bandwith"),
-        compound_lines=["vmware_avi_se_if_rx_bits"],
-    ),
-    lower = Graph(
-        name="lower",
-        title=Title("Output bandwith"),
-        compound_lines=["vmware_avi_se_if_tx_bits"],
-    )
-)
-
-graph_vmware_avi_se_if_packtes = Bidirectional(
-    name = "vmware_avi_se_if_packtes",
-    title = Title("Packets"),
-    upper = Graph(
-        name="upper",
-        title=Title("Input packtes"),
-        simple_lines=["vmware_avi_se_if_rx_packtes"],
-    ),
-    lower = Graph(
-        name="lower",
-        title=Title("Output packtes"),
-        simple_lines=["vmware_avi_se_if_tx_packtes"],
-    )
-)
-
-perfometer_vmware_avi_se_if_bandwith = bi(
-    name='perfometer_vmware_avi_se_if_bandwith',
-    left=Perfometer(
-        name='perfometer_vmware_avi_se_if_bandwith_upper',
-        segments=['vmware_avi_se_if_rx_bits'],
-        focus_range=FocusRange(lower=Closed(0), upper=Open(1000000))
-    ),
-    right=Perfometer(
-        name='perfometer_vmware_avi_se_if_bandwith_lower',
-        segments=['vmware_avi_se_if_tx_bits'],
-        focus_range=FocusRange(lower=Closed(0), upper=Open(1000000))
-    ))
 
 # Avi SE Mem
 metric_vmware_avi_se_mem_usage = Metric(
