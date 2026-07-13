@@ -4,6 +4,16 @@
 > [!note]
 > This MKP is an early version (0.2.0) and not final yet. Feedback, suggestions, and improvements are very welcome.
 
+> [!caution]
+> **Known Issue (v0.2.0)**
+> A parsing bug has been identified in the current release affecting sections that may return multiple objects.
+>
+> If such a section contains only a single entry, it is currently parsed as a dictionary instead of a list. This can lead to exceptions in the affected checks.
+>
+> The issue has already been fixed in the development. However, the next release (v0.3.0) also contains a number of additional changes and improvements that are still being finalized. Because of this, the release may take a few more days.
+>
+> Thank you for your patience, and thanks to everyone testing these early 0.x releases and reporting issues!
+
 This Special Agent can monitor the following sections:
 - Alerts
 - Certificates
