@@ -2,7 +2,7 @@
 #-*- encoding: utf-8
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-07-07
+# Date   : 2026-07-16
 # License: GNU General Public License v2
 #
 # Libexec: VMware Avi Load Balancer
@@ -16,7 +16,7 @@ import urllib3
 from collections.abc import Mapping, Sequence
 from datetime import datetime, timezone
 from requests import Response, Session
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -31,6 +31,7 @@ def parse_arguments(argv):
     parser.add_argument("--username", type=str, required=True)
     parser.add_argument("--password", type=str, required=True)
     parser.add_argument("--tenant", type=str, required=False)
+    parser.add_argument("--version", type=str, required=True, help="Avi API schema version, for example 30.2.7")
     #parser.add_argument("--verify_ssl", type=bool, required=False)
     parser.add_argument("--sections", type=str, required=False, default="all")
 
@@ -39,28 +40,51 @@ def parse_arguments(argv):
     return args
 
 
-def dig(obj, *path, default=None, expected_type=None, remove_chars=None):
+def dig(obj, *path, default=None, expected_type=None, remove_chars=None, ndigits=None):
     """
     Sicherer Zugriff auf verschachtelte Dicts und Listen.
 
-    Optional kann der gefundene Wert in einen Zieltyp konvertiert werden.
-    Bei Fehlern wird `default` zurückgegeben.
+    Optional kann der gefundene Wert in einen Zieltyp konvertiert und bei
+    Float-Werten auf eine bestimmte Anzahl Nachkommastellen gerundet werden.
 
     Beispiele:
         dig(data, "value")
         dig(data, "value", expected_type=float)
         dig(data, "value", expected_type=float, remove_chars=["%"])
-        dig(data, "price", expected_type=float, remove_chars=["€", "%"])
+        dig(data, "value", expected_type=float, ndigits=3)
+        dig(
+            data,
+            "value",
+            expected_type=float,
+            remove_chars=["%"],
+            ndigits=2,
+        )
 
     Args:
-        obj: Das Startobjekt.
-        *path: Keys oder Listenindizes.
-        default: Rückgabewert bei fehlgeschlagenem Zugriff oder Konvertierung.
-        expected_type: Optionaler Zieltyp, z.B. int, float, str.
-        remove_chars: Optional Liste von Zeichen/Strings, die vor der Konvertierung entfernt werden.
+        obj:
+            Das Startobjekt.
+
+        *path:
+            Keys oder Listenindizes.
+
+        default:
+            Rückgabewert bei fehlgeschlagenem Zugriff, Konvertierung
+            oder Rundung.
+
+        expected_type:
+            Optionaler Zieltyp, z. B. int, float oder str.
+
+        remove_chars:
+            Optionale Liste von Zeichen oder Strings, die vor der
+            Konvertierung entfernt werden.
+
+        ndigits:
+            Anzahl der Nachkommastellen für float-Werte.
+            Wenn None, wird nicht gerundet.
 
     Returns:
-        Der gefundene Wert, ggf. konvertiert, oder `default`.
+        Der gefundene Wert, gegebenenfalls bereinigt, konvertiert und
+        gerundet, oder `default`.
     """
     current = obj
 
@@ -68,18 +92,23 @@ def dig(obj, *path, default=None, expected_type=None, remove_chars=None):
         try:
             if isinstance(current, Mapping):
                 current = current.get(key, _MISSING)
-            elif isinstance(current, Sequence) and not isinstance(current, (str, bytes)):
+
+            elif isinstance(current, Sequence) and not isinstance(
+                current, (str, bytes)
+            ):
                 current = current[key]
+
             else:
                 return default
+
         except (KeyError, IndexError, TypeError):
             return default
 
         if current is _MISSING:
             return default
 
-    if expected_type is not None:
-        try:
+    try:
+        if expected_type is not None:
             if isinstance(current, str):
                 current = current.strip()
 
@@ -89,21 +118,26 @@ def dig(obj, *path, default=None, expected_type=None, remove_chars=None):
 
                 current = current.strip()
 
-            current = expected_type(current)
+            if not isinstance(current, expected_type):
+                current = expected_type(current)
 
-        except (ValueError, TypeError):
-            return default
+        if ndigits is not None and isinstance(current, float):
+            current = round(current, ndigits)
+
+    except (ValueError, TypeError):
+        return default
 
     return current
 
  
-class VmmareAviLoadBalancerAgent():
-    def __init__(self, server: str, username: str, password: str, tenant: Optional[str] = None, verify_ssl: bool = False, timeout: int = 30) -> None:
+class VmwareAviLoadBalancerAgent():
+    def __init__(self, server: str, username: str, password: str, version: str, tenant: Optional[str] = None, verify_ssl: bool = False, timeout: int = 30) -> None:
         
         self.controller = f"https://{server}"
         self.username = username
         self.password = password
         self.tenant = tenant
+        self.version = version
         self.verify_ssl = verify_ssl
         self.timeout = timeout
 
@@ -123,6 +157,7 @@ class VmmareAviLoadBalancerAgent():
         headers: Dict[str, str] = {
             "Accept": "application/json",
             "Content-Type": "application/json",
+            "X-Avi-Version": self.version,
         }
 
         if self.tenant:
@@ -191,6 +226,21 @@ class VmmareAviLoadBalancerAgent():
         self._raise_for_status(response)
         return response.json()
 
+    def post(self, path: str, data: Optional[Dict[str, Any]] = None, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        url = f"{self.api_base}/{path.lstrip('/')}"
+
+        response = self.session.post(
+            url,
+            headers=self._default_headers(include_csrf=True),
+            params=params,
+            json=data,
+            timeout=self.timeout,
+            verify=self.verify_ssl,
+        )
+
+        self._raise_for_status(response)
+        return response.json()
+
     # Alerts
     def get_alerts(self):
         return self.get(f"/alert")
@@ -207,6 +257,13 @@ class VmmareAviLoadBalancerAgent():
     def get_cloudinventory(self):
         return self.get(f"/cloud-inventory")
 
+    # pools
+    def get_pool_inventory(self):
+        params = {
+            "step": 1, # Necessary to retrieve current data; without this parameter, average values ​​from the last 6 hours would be returned
+        }
+        return self.get(f"/pool-inventory", params=params)
+
     # ServiceEngine
     def get_serviceengine_cpu(self, uuid: str):
         return self.get(f"/serviceengine/{uuid}/cpu")
@@ -218,20 +275,77 @@ class VmmareAviLoadBalancerAgent():
         params = {
             "metric_id": ",".join(metrics),
             "limit": limit,
-            "step": 1,
+            "step": 1, # Necessary to retrieve current data; without this parameter, average values ​​from the last 6 hours would be returned
         }
 
         return self.get(f"/serviceengine-inventory", params=params)
     
     # VirtualService
-    def get_virtualservices_inventory(self, metrics=[], limit=1):
+    def get_virtualservices_inventory(self):
         params = {
-            "metric_id": ",".join(metrics),
-            "limit": limit,
-            "step": 1,
+            "step": 1, # Necessary to retrieve current data; without this parameter, average values ​​from the last 6 hours would be returned
         }
         return self.get(f"/virtualservice-inventory", params=params)
+
+    # metrics
+    def get_pool_metrics(self, metrics=[]):
+        metric_data = {}
+        
+        params = {
+            "include_statistics": False,
+            "limit": 1,
+            "metric_id": ",".join(metrics),
+        }
+        
+        resp = self.get(f"/analytics/metrics/pool", params=params)
+
+        # parse output
+        for s in dig(resp, "results", 0, "series", default=[]):
+            header = s.get("header", None)
+
+            if header:
+                if header['pool_uuid'] not in metric_data:
+                    metric_data[header['pool_uuid']] = {}
+                
+                # replace . in name from metric, because is unfavorable for checkmk
+                # 'l7_server.avg_application_response_time' -> 'l7_server_avg_application_response_time'
+                header['name'] = header['name'].replace(".", "_")
+
+                metric_data[header['pool_uuid']][header['name']] = round(dig(s, "data", 0, "value", default=0), 3)
+
+        return metric_data
     
+
+    def get_metric_collections(self, uuid: str, metric_requests=[]):
+        metric_data = {}
+
+        params = {
+            "include_refs": False,
+            "include_statistics": False,
+            "pad_missing_data": False,
+            "limit": 1,
+        }
+
+        data = {
+            "metric_requests": metric_requests
+        }
+        
+        resp = self.post("/analytics/metrics/collection", params=params, data=data)
+
+        # parse data
+        for series in dig(resp, "series", uuid, default=[]):
+
+            name = dig(series, "header", "name")
+            value = dig(series, "data", 0, "value")
+
+            if name != None and value != None:
+                # replace . in name from metric, because is unfavorable for checkmk
+                # 'l7_server.avg_application_response_time' -> 'l7_server_avg_application_response_time'
+                name = name.replace(".", "_")
+                metric_data[name] = round(value, 3)
+
+        return metric_data
+
 
 def avi_time_diff_seconds(timestr: str, format: str = "%Y-%b-%d %H:%M:%S") -> float:
     if not timestr:
@@ -253,11 +367,12 @@ if __name__ == "__main__":
     args = parse_arguments(sys.argv[1:])
     
     # init api
-    avi_agent = VmmareAviLoadBalancerAgent(
+    avi_agent = VmwareAviLoadBalancerAgent(
         server=args.server,
         username=args.username,
         password=args.password,
         tenant=args.tenant,
+        version=args.version,
         verify_ssl=False,
     )
 
@@ -311,9 +426,16 @@ if __name__ == "__main__":
                     "version": dig(result, "node_info", "version"),
                     "patch": dig(result, "node_info", "patch"),
                     "state": dig(result, "cluster_state", "state"),
-                    "uptime":  (datetime.now() - (datetime.strptime(result['cluster_state']['up_since'], "%Y-%m-%d %H:%M:%S"))).total_seconds(),
+                    "uptime": 0,
                     "services": [],
                 }
+
+                # uptime
+                # The API returns up_since as a UTC timestamp without timezone information.
+                # Example: "2026-07-13 15:26:11"
+                if dig(result, "cluster_state", "up_since") != None:
+                    up_since = datetime.strptime(result['cluster_state']['up_since'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                    tmp_cluster['uptime'] = (datetime.now(timezone.utc) - up_since).total_seconds()
 
                 for s in result['service_states']:
                     tmp_cluster['services'].append({
@@ -330,8 +452,14 @@ if __name__ == "__main__":
                             "name": dig(n, "name"),
                             "state": dig(n, "state"),
                             "role": dig(n, "role"),
-                            "uptime": (datetime.now() - (datetime.strptime(n['up_since'], "%Y-%m-%d %H:%M:%S"))).total_seconds(),
+                            "uptime": 0,
                         }
+
+                        # uptime
+                        if dig(n, "up_since") != None:
+                            up_since = datetime.strptime(n['up_since'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                            tmp_node['uptime'] = (datetime.now(timezone.utc) - up_since).total_seconds()
+
                         sys.stdout.write(f"{tmp_node}\n")
 
         # Clouds
@@ -348,6 +476,55 @@ if __name__ == "__main__":
                         "state": dig(cloud, "status", "state"),
                     }
                     sys.stdout.write(f"{tmp_cloud}\n")
+
+        # pools
+        if "pool" in args.sections or "all" in args.sections:
+            pool_metrics = [
+                "l4_server.avg_total_rtt",                  # End to End Timing     Server RTT          s
+                "l7_server.avg_application_response_time",  # End to End Timing     App Response        s
+                "l4_server.avg_bandwidth",                  # Throughput            Throughput          bit/s
+                "l4_server.max_open_conns",                 # Open Connections      Open Connections    #
+                #"l4_server.avg_est_capacity",              # Estimated Capacity    Estimated Capacity  #
+                #"l4_server.avg_available_capacity",        # Available Capacity    Available Capacity  #
+                "l4_server.avg_complete_conns",             # New Connections       New Connections     /s
+                "l4_server.avg_lossy_connections",          # New Connections       Lossy Connections   /s
+                "l4_server.avg_errored_connections",        # New Connections       Bad Connectios      /s
+                "l7_server.avg_complete_responses",         # Requests              Requests            /s
+                "l7_server.avg_resp_4xx_errors",            # Requests              4xx                 /s
+                "l7_server.avg_resp_5xx_errors",            # Requests              5xx                 /s
+                "l7_server.pct_response_errors",            # Requests              Request Errors      /s
+            ]
+
+            result = avi_agent.get_pool_inventory()
+            pool_metrics = avi_agent.get_pool_metrics(metrics=pool_metrics)
+
+            if len(result['results']) > 0:
+                sys.stdout.write(f"<<<vmware_avi_pool:sep(0)>>>\n")
+
+                for pool in result['results']:
+                    if dig(pool, "config", "uuid") == None:
+                        continue
+
+                    # num servers
+                    num_servers_down = dig(pool, "runtime", "num_servers_enabled") - dig(pool, "runtime", "num_servers_up")
+                    num_servers_disabled = dig(pool, "runtime", "num_servers") - dig(pool, "runtime", "num_servers_enabled")
+
+                    tmp_pool = {
+                        "name": dig(pool, "config", "name"),
+                        "uuid": dig(pool, "config", "uuid"),
+                        "enabled": dig(pool, "config", "enabled"),
+                        "state": dig(pool, "runtime", "oper_status", "state"),
+                        "num_servers": dig(pool, "runtime", "num_servers"),
+                        "num_servers_enabled": dig(pool, "runtime", "num_servers_enabled"),
+                        "num_servers_up": dig(pool, "runtime", "num_servers_up"),
+                        "num_servers_down": num_servers_down,
+                        "num_servers_disabled": num_servers_disabled,
+                        "health_score": dig(pool, "health_score"),
+                        "alert": dig(pool, "alert"),
+                        "virtualservices": dig(pool, "virtualservices"),
+                        "metrics": dig(pool_metrics, pool['config']['uuid'], default={}),
+                    }
+                    sys.stdout.write(f"{tmp_pool}\n")
 
         # ServiceEngines
         if 'service_engine' in args.sections or 'all' in args.sections:
@@ -374,6 +551,10 @@ if __name__ == "__main__":
                         continue
 
                     sys.stdout.write(f"<<<<{se['config']['name']}>>>>\n")
+                    
+                    # label
+                    sys.stdout.write("<<<labels:sep(0)>>>\n")
+                    sys.stdout.write("{\"vmware_avi/service_engine\": \"yes\"}\n")
 
                     # alert
                     sys.stdout.write(f"<<<vmware_avi_se_alert:sep(0)>>>\n")
@@ -384,7 +565,7 @@ if __name__ == "__main__":
                     se_cpu = avi_agent.get_serviceengine_cpu(se['uuid'])
                     sys.stdout.write(f"<<<vmware_avi_se_cpu:sep(0)>>>\n")
                     cpu = {
-                        "cpu_usage": dig(se_cpu, 0, "total_cpu_utilization"),
+                        "cpu_usage": dig(se_cpu, 0, "total_cpu_utilization", ndigits=3),
                     }
                     sys.stdout.write(f"{cpu}\n")
 
@@ -424,20 +605,20 @@ if __name__ == "__main__":
                     # throughput
                     sys.stdout.write(f"<<<vmware_avi_se_if:sep(0)>>>\n")
                     interface = {
-                        "throughput": se['metrics']['se_if.avg_bandwidth']['value'], # in bit/s
-                        "rx_packets": se['metrics']['se_if.avg_rx_pkts']['value'],
-                        "tx_packets": se['metrics']['se_if.avg_tx_pkts']['value'],
-                        "rx_bits": se['metrics']['se_if.avg_rx_bytes']['value'] * 8,
-                        "tx_bits": se['metrics']['se_if.avg_tx_bytes']['value'] * 8,
+                        "throughput": dig(se, "metrics", "se_if.avg_bandwidth", "value", ndigits=3),
+                        "rx_packets": dig(se, "metrics", "se_if.avg_rx_pkts", "value", ndigits=3),
+                        "tx_packets": dig(se, "metrics", "se_if.avg_tx_pkts", "value", ndigits=3),
+                        "rx_bits": dig(se, "metrics", "se_if.avg_rx_bytes", "value", ndigits=3) * 8,
+                        "tx_bits": dig(se, "metrics", "se_if.avg_tx_bytes", "value", ndigits=3) * 8,
                     }
                     sys.stdout.write(f"{interface}\n")
 
                     # memory
                     sys.stdout.write(f"<<<vmware_avi_se_mem:sep(0)>>>\n")
                     mem = {
-                        "mem_usage": dig(se,"metrics", "se_stats.avg_mem_usage", "value", expected_type=float),
-                        "con_mem_usage": dig(se, "metrics", "se_stats.avg_connection_mem_usage", "value", expected_type=float),
-                        "dyn_mem_usage": dig(se, "metrics", "se_stats.avg_dynamic_mem_usage", "value", expected_type=float),
+                        "mem_usage": dig(se, "metrics", "se_stats.avg_mem_usage", "value", expected_type=float, ndigits=3),
+                        "con_mem_usage": dig(se, "metrics", "se_stats.avg_connection_mem_usage", "value", expected_type=float, ndigits=3),
+                        "dyn_mem_usage": dig(se, "metrics", "se_stats.avg_dynamic_mem_usage", "value", expected_type=float, ndigits=3),
                     }
                     sys.stdout.write(f"{mem}\n")
 
@@ -452,32 +633,54 @@ if __name__ == "__main__":
 
         # VirtualServices
         if 'virtual_service' in args.sections or 'all' in args.sections:
-            metrics = [
-                "l7_client.avg_complete_responses", # Requests per second
-                "l4_client.avg_complete_conns", # Connections per second
-                "l4_client.max_open_conns", # Open Connections
-                "l4_client.avg_bandwidth", # Throughput in bit/s
+
+            vs_metrics = [
+                "l4_client.avg_total_rtt",                  # End to End Timing     Client RTT          s
+                "l4_server.avg_total_rtt",                  # End to End Timing     Server RTT          s
+                "l7_server.avg_application_response_time",  # End to End Timing     App Response        s
+                "l7_client.avg_client_data_transfer_time",  # End to End Timing     Data Transfer       s
+                "l4_client.avg_bandwidth",                  # Throughput            Throughput          bit/s
+                "l4_client.max_open_conns",                 # Open Connections      Open Connections    #
+                "l4_client.avg_complete_conns",             # Connections           Connections         /s
+                "l4_client.avg_lossy_connections",          # Connections           Lossy Connections   /s
+                "l4_client.avg_errored_connections",        # Connections           Bad Connectios      /s
+                "l4_client.pct_connection_errors",          # Connections           Connection Errors   %
+                "l7_client.avg_complete_responses",         # Requests              Requests            /s
+                "l7_server.avg_resp_4xx_errors",            # Requests              4xx                 /s
+                "l7_server.avg_resp_5xx_errors",            # Requests              5xx                 /s
+                "l7_client.avg_resp_4xx_avi_errors",        # Requests              Avi 4xx             /s
+                "l7_client.avg_resp_5xx_avi_errors",        # Requests              Avi 5xx             /s
+                "l7_client.pct_response_errors",            # Requests              Request Errors      /s
             ]
 
-            result = avi_agent.get_virtualservices_inventory(metrics=metrics)
+            result = avi_agent.get_virtualservices_inventory()
+
             if len(result['results']) > 0:
                 sys.stdout.write(f"<<<vmware_avi_vs:sep(0)>>>\n")
                 for vs in result['results']:
-                    tmp_vs = {
-                        "name": vs['config']['name'],
-                        "enabled": vs['config']['enabled'],
-                        "state": vs['runtime']['oper_status']['state'],
-                        "health_score": vs['health_score']['health_score'], # in percent
-                        "num_se_requested": vs['runtime']['vip_summary'][0]['num_se_requested'],
-                        "num_se_assigned": vs['runtime']['vip_summary'][0]['num_se_assigned'],
-                        "service_engine": vs['runtime']['vip_summary'][0]['service_engine'],
-                        "alert": vs['alert']
-                    }
+                    
+                    if dig(vs, "config", "uuid") == None:
+                        continue
 
-                    tmp_vs['rps'] = vs['metrics']['l7_client.avg_complete_responses']['value']
-                    tmp_vs['cps'] = vs['metrics']['l4_client.avg_complete_conns']['value']
-                    tmp_vs['open_conns'] = int(vs['metrics']['l4_client.max_open_conns']['value'])
-                    tmp_vs['throughput'] = vs['metrics']['l4_client.avg_bandwidth']['value']
+                    # get metric collections for virtual services
+                    vs_metrics_data = avi_agent.get_metric_collections(
+                        uuid=vs['config']['uuid'],
+                        metric_requests = [
+                            {"step": 300, "limit": 1, "entity_uuid": vs['config']['uuid'], "metric_id": ",".join(vs_metrics)},
+                        ]
+                    )
+                    
+                    tmp_vs = {
+                        "name": dig(vs, "config", "name"),
+                        "enabled": dig(vs, "config", "enabled"),
+                        "state": dig(vs, "runtime", "oper_status", "state"),
+                        "health_score": dig(vs, "health_score"),
+                        "num_se_requested": dig(vs, "runtime", "vip_summary", 0, "num_se_requested"),
+                        "num_se_assigned": dig(vs, "runtime", "vip_summary", 0, "num_se_assigned"),
+                        "pools": dig(vs, "pools", default=[]),
+                        "service_engine": dig(vs, "runtime", "vip_summary", 0, "service_engine"),
+                        "metrics": vs_metrics_data,
+                    }
 
                     sys.stdout.write(f"{tmp_vs}\n")
 

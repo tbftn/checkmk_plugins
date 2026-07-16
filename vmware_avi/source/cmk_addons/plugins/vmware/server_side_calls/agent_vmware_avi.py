@@ -16,6 +16,7 @@ class AgentVMwareAviLoadBalancer(BaseModel):
     username: str
     password: Secret
     tenant: str
+    version: str
     #verify_ssl: bool
     sections: list = None
 
@@ -27,6 +28,7 @@ def _agent_arguments(params: AgentVMwareAviLoadBalancer, host_config: HostConfig
         "--username", params.username, 
         "--password", params.password.unsafe(),
         "--tenant", params.tenant,
+        "--version", params.version,
         #"--verify_ssl", params.verify_ssl,
     ]
 

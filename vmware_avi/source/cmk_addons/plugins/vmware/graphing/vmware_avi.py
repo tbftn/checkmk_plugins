@@ -1,181 +1,83 @@
 #!/usr/bin/env python3
 # 
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-07-07
+# Date   : 2026-07-16
 # License: GNU General Public License v2
 #
 # Graphing: VMware Avi Load Balancer
 
 
-from cmk.graphing.v1 import Title
-from cmk.graphing.v1.graphs import Bidirectional, Graph
-from cmk.graphing.v1.metrics import Color, DecimalNotation, IECNotation, Metric, SINotation, StrictPrecision, TimeNotation, Unit
-from cmk.graphing.v1.perfometers import Bidirectional as bi, Closed, FocusRange, Open, Stacked, Perfometer
+from cmk.graphing.v1 import graphs, metrics, perfometers, Title
 
-# Avi Cert
-metric_vmware_avi_cert_time = Metric(
+
+UNIT_NUMBER = metrics.Unit(metrics.DecimalNotation(""))
+UNIT_TIME = metrics.Unit(metrics.TimeNotation())
+
+
+# Cert
+metric_vmware_avi_cert_time = metrics.Metric(
     name = "vmware_avi_cert_time",
     title = Title("Remaining certificate validity time"),
-    unit = Unit(TimeNotation()),
-    color = Color.YELLOW
+    unit = UNIT_TIME,
+    color = metrics.Color.YELLOW
 )
 
-perfometer_vmware_avi_cert_time = Perfometer(
+perfometer_vmware_avi_cert_time = perfometers.Perfometer(
     name='perf_vmware_avi_cert_time',
-    focus_range=FocusRange(lower=Closed(0), upper=Open(31536000)),
+    focus_range=perfometers.FocusRange(lower=perfometers.Closed(0), upper=perfometers.Open(31536000)),
     segments = ["vmware_avi_cert_time"],
 )
 
-# Avi Health Score
-metric_vmware_health_score = Metric(
-    name = "vmware_avi_health_score",
-    title = Title("Health Score"),
-    unit = Unit(DecimalNotation("%")),
-    color = Color.GREEN
+# Health Score
+metric_vmware_health_health_score = metrics.Metric(
+    name = "vmware_avi_health_health_score",
+    title = Title("Health score"),
+    unit = UNIT_NUMBER,
+    color = metrics.Color.GREEN
 )
 
-metric_vmware_avi_performance_score = Metric(
-    name = "vmware_avi_performance_score",
-    title = Title("Performance"),
-    unit = Unit(DecimalNotation("%")),
-    color = Color.LIGHT_GREEN
+metric_vmware_avi_health_performance_score = metrics.Metric(
+    name = "vmware_avi_health_performance_score",
+    title = Title("Performance score"),
+    unit = UNIT_NUMBER,
+    color = metrics.Color.BLUE
 )
 
-metric_vmware_avi_resources_penalty = Metric(
-    name = "vmware_avi_resources_penalty",
-    title = Title("Resource Penalty"),
-    unit = Unit(DecimalNotation("%")),
-    color = Color.ORANGE
+metric_vmware_avi_health_resources_penalty = metrics.Metric(
+    name = "vmware_avi_health_resources_penalty",
+    title = Title("Resource penalty"),
+    unit = UNIT_NUMBER,
+    color = metrics.Color.ORANGE
 )
 
-metric_vmware_avi_anomaly_penalty = Metric(
-    name = "vmware_avi_anomaly_penalty",
-    title = Title("Anomaly Penalty"),
-    unit = Unit(DecimalNotation("%")),
-    color = Color.RED
+metric_vmware_avi_health_anomaly_penalty = metrics.Metric(
+    name = "vmware_avi_health_anomaly_penalty",
+    title = Title("Anomaly penalty"),
+    unit = UNIT_NUMBER,
+    color = metrics.Color.RED
 )
 
-metric_vmware_avi_security_penalty = Metric(
-    name = "vmware_avi_security_penalty",
-    title = Title("Security Penalty"),
-    unit = Unit(DecimalNotation("%")),
-    color = Color.PURPLE
+metric_vmware_avi_health_security_penalty = metrics.Metric(
+    name = "vmware_avi_health_security_penalty",
+    title = Title("Security penalty"),
+    unit = UNIT_NUMBER,
+    color = metrics.Color.PURPLE
 )
 
-perfometer_vmware_avi_health_score = Perfometer(
-    name='perf_vmware_avi_health_score',
-    focus_range = FocusRange(Closed(0), Closed(100)),
-    segments = ["vmware_avi_health_score"],
+graph_vmware_avi_health = graphs.Graph(
+    name = "vmware_avi_health",
+    title = Title("Health score"),
+    simple_lines=["vmware_avi_health_performance_score"],
+    compound_lines=[
+        "vmware_avi_health_health_score",
+        "vmware_avi_health_resources_penalty",
+        "vmware_avi_health_anomaly_penalty",
+        "vmware_avi_health_security_penalty",
+    ],
 )
 
-# Avi SE Heartbeat
-metric_vmware_avi_se_hb_misses = Metric(
-    name = "vmware_avi_se_hb_misses",
-    title = Title("HB misses"),
-    unit = Unit(DecimalNotation("")),
-    color = Color.RED
-)
-
-metric_vmware_avi_se_hb_outstanding = Metric(
-    name = "vmware_avi_se_hb_outstanding",
-    title = Title("HB outstanding"),
-    unit = Unit(DecimalNotation("")),
-    color = Color.ORANGE
-)
-
-metric_vmware_avi_se_hb_last_req_age = Metric(
-    name = "vmware_avi_se_hb_last_req_age",
-    title = Title("Last request"),
-    unit = Unit(TimeNotation()),
-    color = Color.GRAY
-)
-
-metric_vmware_avi_se_hb_last_resp_age = Metric(
-    name = "vmware_avi_se_hb_last_resp_age",
-    title = Title("Last response"),
-    unit = Unit(TimeNotation()),
-    color = Color.BLUE
-)
-
-graph_vmware_avi_se_hb_errors = Graph(
-    name = "vmware_avi_se_hb_errors",
-    title = Title("Heartbeat Errors"),
-    simple_lines=["vmware_avi_se_hb_misses", "vmware_avi_se_hb_outstanding"],
-)
-
-graph_vmware_avi_se_hb_time = Graph(
-    name = "vmware_avi_se_hb_time",
-    title = Title("Heartbeat Timing"),
-    simple_lines=["vmware_avi_se_hb_last_req_age", "vmware_avi_se_hb_last_resp_age"],
-)
-
-perfometer_vmware_avi_se_hb_time = Stacked(
-    name='perfometer_vmware_avi_se_hb_time',
-    upper=Perfometer(
-        name='perfometer_vmware_avi_se_hb_time_upper',
-        segments=['vmware_avi_se_hb_last_req_age'],
-        focus_range=FocusRange(lower=Closed(0), upper=Open(60))
-    ),
-    lower=Perfometer(
-        name='perfometer_vmware_avi_se_hb_time_lower',
-        segments=['vmware_avi_se_hb_last_resp_age'],
-        focus_range=FocusRange(lower=Closed(0), upper=Open(60))
-    ))
-
-# Avi SE Interface
-metric_vmware_avi_se_if_throughput = Metric(
-    name = "vmware_avi_throughput",
-    title = Title("Throughput"),
-    unit = Unit(SINotation("bit/s")),
-    color = Color.YELLOW
-)
-
-# Avi SE Mem
-metric_vmware_avi_se_mem_usage = Metric(
-    name = "vmware_avi_se_mem_usage",
-    title = Title("Memory usage"),
-    unit = Unit(DecimalNotation("%")),
-    color = Color.YELLOW,
-)
-
-metric_vmware_avi_se_con_mem_usage = Metric(
-    name = "vmware_avi_se_con_mem_usage",
-    title = Title("Connection memory usage"),
-    unit = Unit(DecimalNotation("%")),
-    color = Color.LIGHT_GREEN,
-)
-
-metric_vmware_avi_se_dyn_mem_usage = Metric(
-    name = "vmware_avi_se_dyn_mem_usage",
-    title = Title("Dynamic memory usage"),
-    unit = Unit(DecimalNotation("%")),
-    color = Color.DARK_BLUE,
-)
-
-perfometer_vmware_avi_se_mem_usage = Perfometer(
-    name='perf_vmware_avi_se_mem_usage',
-    focus_range = FocusRange(Closed(0), Closed(100)),
-    segments = ["vmware_avi_se_mem_usage"],
-)
-
-# Other
-metric_vmware_avi_open_conns = Metric(
-    name = "vmware_avi_open_conns",
-    title = Title("Open Connections"),
-    unit = Unit(DecimalNotation("")),
-    color = Color.LIGHT_BLUE,
-)
-
-metric_vmware_avi_rps = Metric(
-    name = "vmware_avi_rps",
-    title = Title("Requests per second"),
-    unit = Unit(DecimalNotation("/s"), StrictPrecision(2)),
-    color = Color.LIGHT_GREEN,
-)
-
-metric_vmware_avi_cps = Metric(
-    name = "vmware_avi_cps",
-    title = Title("Connections per second"),
-    unit = Unit(DecimalNotation("/s"), StrictPrecision(2)),
-    color = Color.LIGHT_BLUE,
+perfometer_health_health_score = perfometers.Perfometer(
+    name='perf_vmware_avi_health_health_score',
+    focus_range = perfometers.FocusRange(perfometers.Closed(0), perfometers.Closed(100)),
+    segments = ["vmware_avi_health_health_score"],
 )

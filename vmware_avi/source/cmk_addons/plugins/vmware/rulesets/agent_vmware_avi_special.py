@@ -2,14 +2,14 @@
 #-*- encoding: utf-8
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-24
+# Date   : 2026-07-15
 # License: GNU General Public License v2
 #
 # Ruleset: VMware Avi Load Balancer
 
 
-from cmk.rulesets.v1 import Help, Label, Title
-from cmk.rulesets.v1.form_specs import BooleanChoice, DefaultValue, DictElement, Dictionary, MultipleChoice, MultipleChoiceElement, String, Password, validators
+from cmk.rulesets.v1 import Help, Title
+from cmk.rulesets.v1.form_specs import DefaultValue, DictElement, Dictionary, MultipleChoice, MultipleChoiceElement, String, Password, validators
 from cmk.rulesets.v1.rule_specs import Topic, SpecialAgent
 
 
@@ -20,14 +20,14 @@ def _valuespec_special_agent_vmware_avi():
             "username": DictElement(
                 parameter_form=String(
                     title=Title("Username"),
-                    help_text=Help("User ID for API access"),
+                    help_text=Help("Username of the account used to access the Avi REST API."),
                 ),
                 required=True,
             ),
             "password": DictElement(
                 parameter_form=Password(
                     title=Title("Password"),
-                    help_text=Help("Password for the user"),
+                    help_text=Help("Password of the account used to access the Avi REST API."),
                     custom_validate=(validators.LengthInRange(min_value=1),),
                 ),
                 required=True,
@@ -35,7 +35,21 @@ def _valuespec_special_agent_vmware_avi():
             "tenant": DictElement(
                 parameter_form=String(
                     title=Title("Tenant"),
-                    help_text=Help("Used tenant. Default is 'admin'"),
+                    help_text=Help("Avi tenant to query. Use 'admin' for the default administrative tenant."),
+                ),
+                required=True,
+            ),
+            "version": DictElement(
+                parameter_form=String(
+                    title=Title("Api-Version"),
+                    help_text=Help(
+                        "API schema version sent to the Avi Controller in the "
+                        "X-Avi-Version HTTP header, for example '30.2.7'. "
+                        "This version does not need to match the installed "
+                        "Controller version. Keep the version against which "
+                        "the special agent was tested unless you intentionally "
+                        "want to use a newer API schema."
+                    ),
                 ),
                 required=True,
             ),
@@ -50,16 +64,24 @@ def _valuespec_special_agent_vmware_avi():
                 parameter_form=MultipleChoice(
                     title=Title("Get information about..."),
                     help_text=Help(
-                        "Alerts: Found in the web interface at: Operations > Alerts > All Alerts. "
-                        "Certificates: Found in the web interface at: Templates > Security > SSL/TLS Certificates. "
-                        "Clouds: Found in the web interface at: Infrastructure > Clouds. "
-                        "Cluster and Nodes: Found in the web interface at: Infrastructure > Controller > Nodes. "
-                        "Serice Engines: Found in the web interface at: Infrastructure > Dashboard. "
-                        "Virtual Services: Found in the web interface at: Applications > Virtual Services."
+                        "Select the Avi object types that the special agent "
+                        "should retrieve and monitor. "
+                        "Alerts are available in the Avi web interface under "
+                        "Operations > Alerts > All Alerts. "
+                        "Certificates are available under "
+                        "Templates > Security > SSL/TLS Certificates. "
+                        "Clouds are available under Infrastructure > Clouds. "
+                        "Controller clusters and nodes are available under "
+                        "Infrastructure > Controller > Nodes. "
+                        "Pools are available under Applications > Pools. "
+                        "Service Engines are available under "
+                        "Infrastructure > Dashboard. "
+                        "Virtual Services are available under "
+                        "Applications > Virtual Services."
                     ),
                     elements=[
                         MultipleChoiceElement(
-                            name="alert", title=Title("Alerts"),
+                            name="alert", title=Title("Alerts (This feature will be deprecated in a future version)"),
                         ),
                         MultipleChoiceElement(
                             name="certificate", title=Title("Certificates"),
@@ -68,10 +90,13 @@ def _valuespec_special_agent_vmware_avi():
                             name="cloud", title=Title("Clouds"),
                         ),
                         MultipleChoiceElement(
-                            name="cluster", title=Title("Cluster and Nodes"),
+                            name="cluster", title=Title("Controller cluster and nodes"),
                         ),
                         MultipleChoiceElement(
-                            name="service_engine", title=Title("Service Engines (monitor hosts with piggyback data)"),
+                            name="pool", title=Title("Pools"),
+                        ),
+                        MultipleChoiceElement(
+                            name="service_engine", title=Title("Service Engines (provide piggyback monitoring data)"),
                         ),
                         MultipleChoiceElement(
                             name="virtual_service", title=Title("Virtual Services"),
@@ -83,6 +108,7 @@ def _valuespec_special_agent_vmware_avi():
                             "certificate",
                             "cluster",
                             "cloud",
+                            "pool",
                             "service_engine",
                             "virtual_service",
                         ]

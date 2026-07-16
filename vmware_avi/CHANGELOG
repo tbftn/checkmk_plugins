@@ -1,3 +1,20 @@
+2026-07-16 (0.3.0):
+    Important: Delete existing Virtual Service and VMware Avi Special Agent rules before upgrading and recreate them after installing version 0.3.0
+    Added Pool monitoring including operational state, health scores, server status, alerts and performance metrics
+    Added a preconfigured Avi Load Balancer dashboard
+    Added a required Avi API version option, HTTP POST support and support for the Avi analytics metric collection API
+    Reworked Virtual Service metric collection and added detailed namespaced response time, connection, throughput, request and error metrics
+    Added assigned and requested Service Engine details, associated Pool counts and handling for CLUSTER_UP_HA_NOT_READY, CLUSTER_UP_HA_COMPROMISED and CLUSTER_STARTING
+    Unified health score evaluation for Service Engines, Virtual Services and Pools, changed the default warning level from 90 to 85 and disabled performance and penalty levels by default
+    Reworked the Virtual Service ruleset and improved numeric API handling, UTC uptime calculation and retrieval of current inventory values
+    Improved Special Agent labels and help texts and enabled Pool collection by default for new rules
+    Split graph definitions by component and migrated them to the namespaced Checkmk graphing API
+    Removed alert evaluation from Virtual Service checks and marked the standalone Alerts collection option for future removal
+    Changed 'Valid until Checkmk version' to 2.6.0b1
+    Fixed the parsing error introduced in 0.2.0 for agent sections containing a single or multiple objects
+    Fixed the Special Agent class name and Virtual Service status output
+    Various stability improvements and code cleanup
+
 2026-07-08 (0.2.0):
     Added Service Engine Disk monitoring (vmware_avi_se_disk)
     Added configurable rulesets for Cloud

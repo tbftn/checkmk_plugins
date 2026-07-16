@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-07-07
+# Date   : 2026-07-16
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Service Engine Runtime
@@ -16,7 +16,7 @@
 # }
 
 
-from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal, yield_mapped_result
+from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal_dict, yield_mapped_result
 from cmk.agent_based.v2 import AgentSection, CheckPlugin, Service, State, Result
 
 
@@ -54,7 +54,7 @@ def check_vmware_avi_se_runtime(section):
 
 agent_section_vmware_avi_se_runtime = AgentSection(
     name = "vmware_avi_se_runtime",
-    parse_function = parse_python_literal,
+    parse_function = parse_python_literal_dict,
 )
 
 

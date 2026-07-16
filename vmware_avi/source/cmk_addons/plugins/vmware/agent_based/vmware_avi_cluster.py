@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-07-07
+# Date   : 2026-07-16
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Cluster
@@ -20,8 +20,12 @@
 # }
 
 
-from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal, yield_mapped_result
-from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, State, render, Result
+from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal_dict, yield_mapped_result
+from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, HostLabel, Service, State, render, Result
+
+
+def host_labels(section):
+    yield HostLabel("vmware_avi/controller", "yes")
 
 
 def discover_vmware_avi_cluster(section):
@@ -32,6 +36,8 @@ def check_vmware_avi_cluster(section):
     
     map_state = {
         "CLUSTER_UP_HA_ACTIVE": {"cmk": 0, "str": "Active"},
+        "CLUSTER_UP_HA_COMPROMISED": {"cmk": 1, "str": "Compromised"},
+        "CLUSTER_UP_HA_NOT_READY": {"cmk": 2, "str": "Not ready"},
     }
 
     # state
@@ -65,7 +71,8 @@ def check_vmware_avi_cluster(section):
 
 agent_section_vmware_avi_cluster = AgentSection(
     name = "vmware_avi_cluster",
-    parse_function = parse_python_literal,
+    host_label_function = host_labels,
+    parse_function = parse_python_literal_dict,
 )
 
 
