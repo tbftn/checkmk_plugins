@@ -50,7 +50,7 @@ The MKP includes a preconfigured **Avi Load Balancer** dashboard with views and 
 - Virtual Services
 - Pools
 
-![wato](img/wato_special_agent.png?raw=true "sample ruleset")
+![dashboard](img/dashboard.png?raw=true "dashboard")
 
 ## Services
 This special agent creates the following services:
