@@ -73,10 +73,13 @@ Creates the service **Avi Cert** for each certificate that is created.
 - States: 
     - CRIT when state is not "SSL_CERTIFICATE_FINISHED"
     - WARN if certificate is self-signed (configurable)
-- Time until expiration: WARN/CRIT if lower than 90 days/30 days (configurable)
+-  Remaining certificate validity time: WARN/CRIT if lower than 90 days/30 days (configurable)
 
 **Metrics**
-- Time until expiration
+- Remaining certificate validity time
+
+![metrics_cert](img/metrics_cert.png?raw=true "metrics_cert")
+
 </details>
 
 **<details><summary>Cloud</summary>**
@@ -103,9 +106,6 @@ Creates the service **Avi Cluster** and **Avi Node** for each Node that is creat
 - Services: CRIT if at least one cluster service is not `CLUSTER_ACTIVE`
 - Uptime: no levels by default
 
-**Metrics (Cluster)**
-- Uptime
-
 **Monitors (Nodes)**
 - State:
     - OK if state is `CLUSTER_ACTIVE`
@@ -114,8 +114,10 @@ Creates the service **Avi Cluster** and **Avi Node** for each Node that is creat
 - Role: OK if role is `CLUSTER_LEADER` or `CLUSTER_FOLLOWER`
 - Uptime: no levels by default
 
-**Metrics (Nodes)**
+**Metrics (Cluster and Nodes)**
 - Uptime
+
+![metrics_cluster_node](img/metrics_cluster_node.png?raw=true "metrics_cluster_node")
 </details>
 
 **<details><summary>Pools</summary>**
@@ -143,7 +145,7 @@ Creates the service **Avi Pool** for each Pool that is created, enabled and not 
 - End to End timing (Graph)
     - Server RTT (s)
     - App response (s)
-- Connections (Graph)
+- New Connections (Graph)
     - New connections rate (/s)
     - Lossy connections rate (/s)
     - Bad connections rate (/s)
@@ -152,8 +154,15 @@ Creates the service **Avi Pool** for each Pool that is created, enabled and not 
     - 4xx errors rate (/s)
     - 5xx errors rate (/s)
 - Request errors (%)
+- Servers (Graph)
+    - Servers total
+    - Servers disabled
+    - Servers down
+    - Servers up
 - Throughput (bit/s)
 - Open connections
+
+![metrics_pool](img/metrics_pool.png?raw=true "metrics_pool")
 </details>
 
 **<details><summary>Virtual Services</summary>**
@@ -189,17 +198,19 @@ Creates the service **Avi VS** for each Virtual Service that is created and enab
     - Connections rate (/s)
     - Lossy connections rate (/s)
     - Bad connections rate (/s)
-- Errors (Graph)
-    - Connection errors (%)
-    - Request errors (%)
 - Requests (Graph)
     - Requests rate (/s)
     - 4xx errors rate (/s)
     - 5xx errors rate (/s)
     - Avi 4xx errors rate (/s)
     - Avi 5xx errors rate (/s)
+- Errors (Graph)
+    - Connection errors (%)
+    - Request errors (%)
 - Throughput (bit/s)
 - Open connections
+
+![metrics_vs](img/metrics_vs.png?raw=true "metrics_vs")
 </details>
 
 ## Service Engines (Host)
