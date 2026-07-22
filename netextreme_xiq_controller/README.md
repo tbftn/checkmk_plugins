@@ -12,7 +12,10 @@ This Special Agent can monitor the following sections:
 To access the ExtremeCloud IQ Controller, you need a user with admin privileges. In the ExtremeCloud IQ Controller rule set, under the Other integrations section, you then need to enter the access data.
 
 ![wato](img/wato_special_agent.png?raw=true "sample ruleset")
- 
+
+## Download
+- [Download version 0.2.0][PACKAGE]
+
 ## Services
 **<details><summary>AP</summary>**
 Creates the service **AP** for each access point that is created.
@@ -63,13 +66,25 @@ Creates the service **WLAN** for each WLAN (SSID) that is created. It will only 
 - Active Clients
 </details>
 
-## Download
-- [Download the newest mkp file][PACKAGE]
+## Checkmk version compatibility
+> [!NOTE]
+> The versions listed are those with which the plugin was tested. The plugin may also work with other versions.
 
-## Tested Devices
-Firmware version 10.15.x is recommended.
+- 2.3.0: `netextreme_xiq_controller-0.2.0.mkp`
+- 2.4.0: `netextreme_xiq_controller-0.2.0.mkp`
+- 2.5.0: Not yet tested for this version
 
-AP series:
+## ExtremeCloud IQ Controller version compatibility
+> [!NOTE]
+> The versions listed are those with which the plugin was tested. The plugin may also work with other versions.
+
+- 10.15.x: `netextreme_xiq_controller-0.1.0.mkp`
+- 10.16.x: `netextreme_xiq_controller-0.1.0.mkp`
+- 10.17.x: `netextreme_xiq_controller-0.2.0.mkp`
+- 10.18.x: `netextreme_xiq_controller-0.2.0.mkp`
+- 10.19.x: Not yet tested for this version
+
+## Tested AP series
 - AP310i
 - AP505i
 - AP4000
