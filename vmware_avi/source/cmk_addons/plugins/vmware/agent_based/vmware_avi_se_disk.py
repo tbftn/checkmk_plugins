@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-07-16
+# Date   : 2026-09-19
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Site Engines Filesystem
@@ -14,7 +14,7 @@
 
 
 from cmk_addons.plugins.vmware.lib.vmware_avi import parse_python_literal_dict
-from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, render
+from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service, State, render, Result
 
 
 def discover_vmware_avi_se_disk(section):
@@ -22,15 +22,19 @@ def discover_vmware_avi_se_disk(section):
 
 
 def check_vmware_avi_se_disk(params, section):
-    
-    yield from check_levels(
-        section['disk_usage'],
-        label="Usage",
-        levels_upper=params["usage"],
-        render_func=lambda v: f'{render.percent(v)}',
-        metric_name="fs_used_percent", # build checkmk metric
-        boundaries=(0, 100)
-    )
+
+    # check value is available
+    if section['disk_usage']:
+        yield from check_levels(
+            section['disk_usage'],
+            label="Usage",
+            levels_upper=params["usage"],
+            render_func=lambda v: f'{render.percent(v)}',
+            metric_name="fs_used_percent", # build checkmk metric
+            boundaries=(0, 100)
+        )
+    else:
+        yield Result(state=State(3), summary="No data available!")
 
 
 agent_section_vmware_avi_se_disk = AgentSection(

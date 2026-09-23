@@ -27,8 +27,11 @@ def discover_vmware_avi_se_runtime(section):
 def check_vmware_avi_se_runtime(section):
     
     map_state = {
+        "OPER_DOWN": {"cmk": 2, "str": "Down"},
         "OPER_UP": {"cmk": 0, "str": "Up"},
-        "OPER_DONW": {"cmk": 2, "str": "Down"},
+        "OPER_PARTITIONED": {"cmk": 1, "str": "Partitioned"},
+        "OPER_UPGRADING": {"cmk": 1, "str": "Upgrading"},
+        "OPER_INITIALIZING": {"cmk": 1, "str": "Initializing"},
     }
 
     map_power_state = {
@@ -37,6 +40,7 @@ def check_vmware_avi_se_runtime(section):
 
     map_license_state = {
         "LICENSE_STATE_LICENSED": {"cmk": 0, "str": "Ok"},
+        "LICENSE_STATE_UNDETERMINED": {"cmk": 1, "str": "Undetermined"},
     }
 
     # state

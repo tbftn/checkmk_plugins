@@ -39,6 +39,24 @@ def parameter_form_vmware_avi_vs():
                     prefill=DefaultValue(2)
                 )
             ),
+            "state_vs_resources": DictElement(
+                parameter_form=ServiceState(
+                    title=Title("State when VS have problems with there resources"),
+                    prefill=DefaultValue(2)
+                )
+            ),
+            "state_vs_partitioned": DictElement(
+                parameter_form=ServiceState(
+                    title=Title("State when VS is Partitioned"),
+                    prefill=DefaultValue(1)
+                )
+            ),
+            "state_vs_creating": DictElement(
+                parameter_form=ServiceState(
+                    title=Title("State when VS is Creating"),
+                    prefill=DefaultValue(1)
+                )
+            ),
             "state_lower_se_avail_as_req": DictElement(
                 parameter_form=ServiceState(
                     title=Title("State when more Service Engines are requested than available"),

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # 
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-07-16
+# Date   : 2026-08-19
 # License: GNU General Public License v2
 #
 # Graphing: VMware Avi Load Balancer - Virtual Services
@@ -106,7 +106,7 @@ metric_vmware_avi_vs_l4_client_avg_errored_connections = metrics.Metric(
 graph_vmware_avi_vs_avg_conns = graphs.Graph(
     name = "vmware_avi_vs_avg_conns",
     title = Title("Connections"),
-    compound_lines=[
+    simple_lines=[
         "vmware_avi_vs_l4_client_avg_errored_connections",
         "vmware_avi_vs_l4_client_avg_lossy_connections", 
         "vmware_avi_vs_l4_client_avg_complete_conns", 
@@ -159,7 +159,7 @@ metric_vmware_avi_vs_l7_client_avg_resp_5xx_avi_errors = metrics.Metric(
 graph_vmware_avi_vs_avg_resp = graphs.Graph(
     name = "vmware_avi_vs_avg_resp",
     title = Title("Requests"),
-    compound_lines=[
+    simple_lines=[
         "vmware_avi_vs_l7_client_avg_resp_5xx_avi_errors",
         "vmware_avi_vs_l7_client_avg_resp_4xx_avi_errors",
         "vmware_avi_vs_l7_server_avg_resp_5xx_errors",

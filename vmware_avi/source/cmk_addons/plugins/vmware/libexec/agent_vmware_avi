@@ -2,7 +2,7 @@
 #-*- encoding: utf-8
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-07-16
+# Date   : 2026-09-23
 # License: GNU General Public License v2
 #
 # Libexec: VMware Avi Load Balancer
@@ -216,16 +216,19 @@ class VmwareAviLoadBalancerAgent():
 
     def get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         url = f"{self.api_base}/{path.lstrip('/')}"
-        response = self.session.get(
-            url,
-            headers=self._default_headers(include_csrf=False),
-            params=params,
-            timeout=self.timeout,
-            verify=self.verify_ssl,
-        )
-        self._raise_for_status(response)
+        try:
+            response = self.session.get(
+                url,
+                headers=self._default_headers(include_csrf=False),
+                params=params,
+                timeout=self.timeout,
+                verify=self.verify_ssl,
+            )
+            #self._raise_for_status(response)
+        except:
+            return None
         return response.json()
-
+    
     def post(self, path: str, data: Optional[Dict[str, Any]] = None, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         url = f"{self.api_base}/{path.lstrip('/')}"
 
@@ -288,6 +291,36 @@ class VmwareAviLoadBalancerAgent():
         return self.get(f"/virtualservice-inventory", params=params)
 
     # metrics
+    def get_controller_metrics(self, metrics=[]):
+        metric_data = {}
+        
+        params = {
+            "include_statistics": False,
+            "limit": 1,
+            "metric_id": ",".join(metrics),
+        }
+
+        resp = self.get(f"/analytics/metrics/controller", params=params)
+        
+        # parse output
+        for con in dig(resp, "results", default=[]):
+            for s in dig(con, "series", default=[]):
+                name = dig(s, "header", "name")
+                value = dig(s, "data", 0, "value")
+
+                if name != None and value != None:
+                    if con['entity_uuid'] not in metric_data:
+                        metric_data[con['entity_uuid']] = {}
+                    
+                    # replace . in name from metric, because is unfavorable for checkmk
+                    # 'l7_server.avg_application_response_time' -> 'l7_server_avg_application_response_time'
+                    name = name.replace(".", "_")
+
+                    metric_data[con['entity_uuid']][name] = round(value, 3)
+
+        return metric_data
+
+
     def get_pool_metrics(self, metrics=[]):
         metric_data = {}
         
@@ -316,14 +349,13 @@ class VmwareAviLoadBalancerAgent():
         return metric_data
     
 
-    def get_metric_collections(self, uuid: str, metric_requests=[]):
+    def get_metric_collections(self, metric_requests=[]):
         metric_data = {}
 
         params = {
-            "include_refs": False,
             "include_statistics": False,
             "pad_missing_data": False,
-            "limit": 1,
+            "step": 300
         }
 
         data = {
@@ -332,17 +364,20 @@ class VmwareAviLoadBalancerAgent():
         
         resp = self.post("/analytics/metrics/collection", params=params, data=data)
 
-        # parse data
-        for series in dig(resp, "series", uuid, default=[]):
+        for uuid in resp.get("series"):
+            uuid_data = {}
 
-            name = dig(series, "header", "name")
-            value = dig(series, "data", 0, "value")
+            for metric in dig(resp, "series", uuid, default=[]):
+                name = dig(metric, "header", "name")
+                value = dig(metric, "data", 0, "value")
 
-            if name != None and value != None:
-                # replace . in name from metric, because is unfavorable for checkmk
-                # 'l7_server.avg_application_response_time' -> 'l7_server_avg_application_response_time'
-                name = name.replace(".", "_")
-                metric_data[name] = round(value, 3)
+                if name != None and value != None:
+                    # replace . in name from metric, because is unfavorable for checkmk
+                    # 'l7_server.avg_application_response_time' -> 'l7_server_avg_application_response_time'
+                    name = name.replace(".", "_")
+                    uuid_data[name] = round(value, 3)
+
+            metric_data[uuid] = uuid_data
 
         return metric_data
 
@@ -406,7 +441,6 @@ if __name__ == "__main__":
                 for cert in result['results']:
                     tmp_cert = {
                         "name": dig(cert, "name"),
-                        "status": dig(cert, "status"),
                         "ocsp_error_status": dig(cert, "ocsp_error_status"),
                         "expire_status": dig(cert, "certificate", "expiry_status"),
                         "not_before": dig(cert, "certificate", "not_before"),
@@ -418,6 +452,22 @@ if __name__ == "__main__":
 
         # Cluster and Nodes
         if 'cluster' in args.sections or 'all' in args.sections:
+
+            controller_metrics = [
+                "controller_stats.avg_cpu_usage",               # CPU Usage         %
+                "controller_stats.avg_disk_read_bytes",         # Disk read         Byte/s
+                "controller_stats.avg_disk_usage",              # Disk usage        %
+                "controller_stats.avg_disk_write_bytes",        # Disk write        Byte/s
+                #"controller_stats.avg_mem_buffered",            # Memory buffered   KB
+                #"controller_stats.avg_mem_cached",              # Memory cached     KB
+                "controller_stats.avg_mem_usage",               # Memory usage      %
+                #"controller_stats.avg_num_backend_servers",     # Backend Servers   #
+                #"controller_stats.avg_total_se_throughput",     # SE Throughput     Bit/s
+                #"controller_stats.sum_total_se_bytes",          # SE total bytes    Byte
+                #"controller_stats.sum_total_vs_bytes",          # VS total bytes    Byte
+                #"controller_stats.sum_total_vs_client_bytes",   # VS client bytes   Byte
+            ]
+
             result = avi_agent.get_cluster()
 
             if len(result) > 0:
@@ -447,12 +497,28 @@ if __name__ == "__main__":
 
                 if len(result['node_states']) > 0:
                     sys.stdout.write(f"<<<vmware_avi_node:sep(0)>>>\n")
-                    for n in result['node_states']:
+
+                    # build metric requests...
+                    metric_requests = []
+                    for n in result.get("node_states", []):
+                        metric_requests.append({
+                            "entity_uuid": n['uuid'],
+                            "limit": 1,
+                            "aggregate_entity": False,
+                            "step": 300,
+                            "metric_id": ",".join(controller_metrics),
+                        })
+        
+                    controller_metrics_data = avi_agent.get_metric_collections(metric_requests=metric_requests)
+
+                    for n in result.get("node_states", []):
+
                         tmp_node = {
                             "name": dig(n, "name"),
                             "state": dig(n, "state"),
                             "role": dig(n, "role"),
                             "uptime": 0,
+                            "metrics": controller_metrics_data.get(n['uuid']),
                         }
 
                         # uptime
@@ -477,7 +543,7 @@ if __name__ == "__main__":
                     }
                     sys.stdout.write(f"{tmp_cloud}\n")
 
-        # pools
+        # Pools
         if "pool" in args.sections or "all" in args.sections:
             pool_metrics = [
                 "l4_server.avg_total_rtt",                  # End to End Timing     Server RTT          s
@@ -587,8 +653,10 @@ if __name__ == "__main__":
                     hb = {
                         "hb_misses": dig(se, "runtime", "hb_status", "num_hb_misses"),
                         "hb_outstanding": dig(se, "runtime", "hb_status", "num_outstanding_hb"),
-                        "last_hb_req_sent": avi_time_diff_seconds(se['runtime']['hb_status']['last_hb_req_sent']),
-                        "last_hb_resp_recv": avi_time_diff_seconds(se['runtime']['hb_status']['last_hb_resp_recv']),
+                        #"last_hb_req_sent": avi_time_diff_seconds(se['runtime']['hb_status']['last_hb_req_sent']),
+                        "last_hb_req_sent": avi_time_diff_seconds(dig(se, "runtime", "hb_status", "last_hb_req_sent")),
+                        #"last_hb_resp_recv": avi_time_diff_seconds(se['runtime']['hb_status']['last_hb_resp_recv']),
+                        "last_hb_resp_recv": avi_time_diff_seconds(dig(se, "runtime", "hb_status", "last_hb_resp_recv")),
                     }
                     sys.stdout.write(f"{hb}\n")
 
@@ -622,11 +690,12 @@ if __name__ == "__main__":
                     }
                     sys.stdout.write(f"{mem}\n")
 
-                    # uptime
                     sys.stdout.write(f"<<<uptime>>>\n")
-                    dt = datetime.strptime(se['runtime']['online_since'], "%Y-%b-%d %H:%M:%S")
-                    sys.stdout.write(f"{(datetime.now() - dt).total_seconds()}\n")
-
+                    try:
+                        dt = datetime.strptime(se['runtime']['online_since'], "%Y-%b-%d %H:%M:%S")
+                        sys.stdout.write(f"{(datetime.now() - dt).total_seconds()}\n")
+                    except:
+                        sys.stdout.write(f"0\n")
                     sys.stdout.write("<<<<>>>>\n") # end of piggyback host
 
             # === END PIGGYBACK
@@ -655,21 +724,24 @@ if __name__ == "__main__":
 
             result = avi_agent.get_virtualservices_inventory()
 
+            # build metric requests...
+            metric_requests = []
+            for vs in result.get("results", []):
+                metric_requests.append({
+                    "entity_uuid": vs['uuid'],
+                    "limit": 1,
+                    "metric_id": ",".join(vs_metrics),
+                })
+
+            vs_metrics_data = avi_agent.get_metric_collections(metric_requests = metric_requests)
+
             if len(result['results']) > 0:
                 sys.stdout.write(f"<<<vmware_avi_vs:sep(0)>>>\n")
-                for vs in result['results']:
+                for vs in result.get("results", []):
                     
                     if dig(vs, "config", "uuid") == None:
                         continue
 
-                    # get metric collections for virtual services
-                    vs_metrics_data = avi_agent.get_metric_collections(
-                        uuid=vs['config']['uuid'],
-                        metric_requests = [
-                            {"step": 300, "limit": 1, "entity_uuid": vs['config']['uuid'], "metric_id": ",".join(vs_metrics)},
-                        ]
-                    )
-                    
                     tmp_vs = {
                         "name": dig(vs, "config", "name"),
                         "enabled": dig(vs, "config", "enabled"),
@@ -678,8 +750,8 @@ if __name__ == "__main__":
                         "num_se_requested": dig(vs, "runtime", "vip_summary", 0, "num_se_requested"),
                         "num_se_assigned": dig(vs, "runtime", "vip_summary", 0, "num_se_assigned"),
                         "pools": dig(vs, "pools", default=[]),
-                        "service_engine": dig(vs, "runtime", "vip_summary", 0, "service_engine"),
-                        "metrics": vs_metrics_data,
+                        "service_engine": dig(vs, "runtime", "vip_summary", 0, "service_engine", default=[]),
+                        "metrics": vs_metrics_data.get(vs['config']['uuid']),
                     }
 
                     sys.stdout.write(f"{tmp_vs}\n")

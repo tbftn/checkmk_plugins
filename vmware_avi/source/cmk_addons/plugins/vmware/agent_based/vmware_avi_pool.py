@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-07-16
+# Date   : 2026-09-23
 # License: GNU General Public License v2
 #
 # Check: VMware Avi Load Balancer - Pools
@@ -54,7 +54,7 @@ from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service,
 
 def discover_vmware_avi_pool(section):
     for pool in section:
-        if pool.get("enabled") is True and pool.get("state") != "OPER_UNUSED": # if unused, no data available...
+        if pool.get("enabled") is True and pool.get("state") not in ["OPER_INACTIVE", "OPER_UNUSED"]: # if unused, no data available...
             yield Service(item=pool['name'])
 
 
@@ -63,6 +63,7 @@ def check_vmware_avi_pool(item, params, section):
     map_state = {
         "OPER_UP": {"cmk": 0, "str": "Up"},
         "OPER_DOWN": {"cmk": params['state_pool_down'], "str": "Down"},
+        "OPER_INACTIVE": {"cmk": 3, "str": "Inactive"},
         "OPER_UNUSED": {"cmk": 3, "str": "Unused"}
     }
 
@@ -74,7 +75,7 @@ def check_vmware_avi_pool(item, params, section):
         # state
         yield from yield_mapped_result(pool['state'], map_state, "State")
 
-        if pool['state'] == "OPER_DOWN":
+        if pool['state'] in ["OPER_DOWN", "OPER_INACTIVE", "OPER_UNUSED"]:
             continue
 
         # health score

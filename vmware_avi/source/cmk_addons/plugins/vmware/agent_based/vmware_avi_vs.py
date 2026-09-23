@@ -66,7 +66,7 @@ from cmk.agent_based.v2 import AgentSection, check_levels, CheckPlugin, Service,
 
 def discover_vmware_avi_vs(section):
     for vs in section:
-        if vs.get("enabled") is True:
+        if vs.get("enabled") is True and vs.get("state") != "OPER_DISABLED":
             yield Service(item=vs['name'])
 
 
@@ -74,7 +74,11 @@ def check_vmware_avi_vs(item, params, section):
 
     map_state = {
         "OPER_UP": {"cmk": 0, "str": "Up"},
-        "OPER_DOWN": {"cmk": params['state_vs_down'], "str": "Down"}
+        "OPER_DOWN": {"cmk": params['state_vs_down'], "str": "Down"},
+        "OPER_RESOURCES": {"cmk": params['state_vs_resources'], "str": "Problem with resources"},
+        "OPER_PARTITIONED": {"cmk": params['state_vs_partitioned'], "str": "Partitioned"},
+        "OPER_CREATING": {"cmk": params['state_vs_creating'], "str": "Creating"},
+        "OPER_DISABLED": {"cmk": 3, "str": "Disabled"},
     }
 
     for vs in section:
@@ -85,7 +89,7 @@ def check_vmware_avi_vs(item, params, section):
         # state
         yield from yield_mapped_result(vs['state'], map_state, "State")
 
-        if vs['state'] == "OPER_DOWN":
+        if vs['state'] in ["OPER_DOWN", "OPER_DISABLED"]:
             continue
 
         # health score
@@ -111,9 +115,9 @@ def check_vmware_avi_vs(item, params, section):
             "l4_server_avg_total_rtt": {"label": "Server RTT", "render_func": lambda v: f"{render.time_offset(v)}"},
             "l7_server_avg_application_response_time": {"label": "App Response", "render_func": lambda v: f"{render.time_offset(v)}"},
             "l7_client_avg_client_data_transfer_time": {"label": "Data Transfer", "render_func": lambda v: f"{render.time_offset(v)}"},
-            "l4_client_avg_bandwidth": {"label": "Throughput", "render_func": lambda v: f"{render.networkbandwidth(v/8)}"},
-            "l4_client_max_open_conns": {"label": "Open Connections", "render_func": lambda v: f"{v}"},
-            "l4_client_avg_complete_conns": {"label": "Connections", "render_func": lambda v: f"{round(v, 2)}/s"},
+            "l4_client_avg_bandwidth": {"label": "Throughput", "render_func": lambda v: f"{render.networkbandwidth(v/8)}", "notice_only": False},
+            "l4_client_max_open_conns": {"label": "Open Connections", "render_func": lambda v: f"{v}", "notice_only": False},
+            "l4_client_avg_complete_conns": {"label": "Connections", "render_func": lambda v: f"{round(v, 2)}/s", "notice_only": False},
             "l4_client_avg_lossy_connections": {"label": "Lossy connections", "render_func": lambda v: f"{round(v, 2)}/s"},
             "l4_client_avg_errored_connections": {"label": "Bad connections", "render_func": lambda v: f"{round(v, 2)}/s"},
             "l4_client_pct_connection_errors": {"label": "Connection errors", "render_func": lambda v: f"{render.percent(v)}", "boundaries": (0, 100)},
@@ -192,6 +196,9 @@ check_plugin_vmware_avi_vs = CheckPlugin(
     check_function = check_vmware_avi_vs,
     check_default_parameters = {
         "state_vs_down": 2,
+        "state_vs_resources": 2,
+        "state_vs_partitioned": 1,
+        "state_vs_creating": 1,
         "state_lower_se_avail_as_req": 1,
         "state_se_not_connected": 2,
         "health_score": {

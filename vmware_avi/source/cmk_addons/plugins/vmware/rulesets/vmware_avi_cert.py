@@ -26,13 +26,25 @@ from cmk.rulesets.v1.rule_specs import CheckParameters, HostAndItemCondition, To
 def parameter_form_vmware_avi_cert():
     return Dictionary(
         elements={
+            "state_expire_warning": DictElement(
+                parameter_form=ServiceState(
+                    title=Title("State when expire state is Warning"),
+                    prefill=DefaultValue(1)
+                )
+            ),
+            "state_expired": DictElement(
+                parameter_form=ServiceState(
+                    title=Title("State when expire state is Expired"),
+                    prefill=DefaultValue(2)
+                )
+            ),
             "days_until_expire": DictElement(
                 parameter_form=SimpleLevels(
                     title=Title("Days until expiration"),
                     prefill_levels_type=DefaultValue(LevelsType.FIXED),
                     level_direction=LevelDirection.LOWER,
                     form_spec_template=TimeSpan(displayed_magnitudes=[TimeMagnitude.DAY]),
-                    prefill_fixed_levels=DefaultValue(value=(90.0 * 86400, 30.0 * 86400))
+                    prefill_fixed_levels=DefaultValue(value=(30.0 * 86400, 7.0 * 86400))
                 )
             ),
             "state_self_signed": DictElement(

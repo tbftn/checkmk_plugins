@@ -37,7 +37,7 @@ def parameter_form_vmware_avi_cloud():
     )
 
 
-rule_spec_vmware_avi_cert = CheckParameters(
+rule_spec_vmware_avi_cloud = CheckParameters(
     name="vmware_avi_cloud",
     title=Title("VMware Avi Clouds"),
     topic=Topic.VIRTUALIZATION,

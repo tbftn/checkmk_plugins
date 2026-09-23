@@ -1,3 +1,18 @@
+2026-09-23 (0.4.0):
+    Added Controller Node monitoring including CPU, memory, disk usage, disk throughput and uptime
+    Added configurable thresholds and monitoring states for Controller Nodes
+    Added dedicated Controller Node metrics, graphs and perfometers
+    Added support for additional Virtual Service and Service Engine operational states
+    Reworked certificate monitoring to use the Avi certificate expiry status and added configurable expiry states
+    Changed default certificate expiry warning and critical levels from 90/30 days to 30/7 days
+    Improved Virtual Service metric collection by collecting analytics metrics in batches
+    Improved handling of missing Service Engine CPU, disk, heartbeat and uptime values
+    Improved handling of failed Avi API requests and missing Virtual Service data
+    Updated Pool and Virtual Service discovery handling for inactive or disabled objects
+    Updated the preconfigured Avi Load Balancer dashboard with Requests and Problems views
+    Fixed Service Engine OPER_DOWN state handling and the VMware Avi Cloud ruleset registration
+    Various stability improvements and code cleanup
+
 2026-07-16 (0.3.0):
     Important: Delete existing Virtual Service and VMware Avi Special Agent rules before upgrading and recreate them after installing version 0.3.0
     Added Pool monitoring including operational state, health scores, server status, alerts and performance metrics

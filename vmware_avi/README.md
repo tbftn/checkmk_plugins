@@ -1,26 +1,8 @@
-[PACKAGE]: packages/vmware_avi-0.3.0.mkp "vmware_avi-0.3.0.mkp"
+[PACKAGE]: packages/vmware_avi-0.4.0.mkp "vmware_avi-0.4.0.mkp"
 # VMware Avi Load Balancer (Special Agent)
 
 > [!NOTE]
-> This MKP is an early version (0.3.0) and not final yet. Feedback, suggestions, and improvements are very welcome.
-
-> [!CAUTION]
-> **Upgrading from version 0.2.0**
->
-> Version 0.3.0 changes the configuration structure of the VMware Avi Special Agent and Virtual Service rules.
->
-> Before upgrading:
-> 1. Record the current settings of all VMware Avi Special Agent and Virtual Service rules
-> 2. Delete these rules before installing version 0.3.0
-> 3. Install the new MKP
-> 4. Recreate the rules using the new configuration options
->
-> Recreating the rules is recommended instead of migrating the existing configuration because it avoids incompatible or incomplete rule parameters.
->
-> The Avi API version is now a required Special Agent setting and must be configured when recreating the rule.
->
-> Version 0.2.0 also contains a severe parsing error affecting agent sections that may contain one or multiple objects. Version 0.2.0 should therefore no longer be used.
-
+> This MKP is an early version (0.4.0) and not final yet. Feedback, suggestions, and improvements are very welcome.
 
 This Special Agent can monitor the following sections:
 - Alerts (This feature will be deprecated in a future version) 
@@ -41,6 +23,9 @@ This Special Agent can monitor the following sections:
 To access the VMware Avi Load Balancer, you need a user with the appropriate permissions. Then, enter the access credentials in the "Other Integrations" section of the VMware Avi Load Balancer rule set.
 
 ![wato](img/wato_special_agent.png?raw=true "sample ruleset")
+
+## Download
+- [Download version 0.4.0][PACKAGE]
 
 ## Dashboard
 The MKP includes a preconfigured **Avi Load Balancer** dashboard with views and summaries for:
@@ -71,9 +56,10 @@ Creates the service **Avi Cert** for each certificate that is created.
 
 **Monitors**
 - States: 
-    - CRIT when state is not "SSL_CERTIFICATE_FINISHED"
+    - CRIT when state is "SSL_CERTIFICATE_EXPIRED" (Expired) (configurable)
+    - WARN when state is "SSL_CERTIFICATE_EXPIRY_WARNING" (Expire warning) (configurable)
     - WARN if certificate is self-signed (configurable)
--  Remaining certificate validity time: WARN/CRIT if lower than 90 days/30 days (configurable)
+-  Remaining certificate validity time: WARN/CRIT if lower than 30 days/7 days (configurable)
 
 **Metrics**
 - Remaining certificate validity time
@@ -114,14 +100,23 @@ Creates the service **Avi Cluster** and **Avi Node** for each Node that is creat
 - Role: OK if role is `CLUSTER_LEADER` or `CLUSTER_FOLLOWER`
 - Uptime: no levels by default
 
-**Metrics (Cluster and Nodes)**
+**Metrics (Cluster)**
 - Uptime
 
 ![metrics_cluster_node](img/metrics_cluster_node.png?raw=true "metrics_cluster_node")
+
+**Metrics (Nodes)**
+- Disk throughput
+    - Disk read (byte/s)
+    - Disk write (byte/s)
+- CPU utilization (%)
+- Disk usage (%)
+- Memory (%)
+- Uptime
 </details>
 
 **<details><summary>Pools</summary>**
-Creates the service **Avi Pool** for each Pool that is created, enabled and not in state OPER_UNUSED (Unused).
+Creates the service **Avi Pool** for each Pool that is created, enabled and not in states OPER_UNUSED (Unused) and OPER_INACTIVE (Inactive).
 
 ![service_vs](img/service_pool.png?raw=true "service vs")
 
@@ -166,7 +161,7 @@ Creates the service **Avi Pool** for each Pool that is created, enabled and not 
 </details>
 
 **<details><summary>Virtual Services</summary>**
-Creates the service **Avi VS** for each Virtual Service that is created and enabled.
+Creates the service **Avi VS** for each Virtual Service that is created,  enabled and not in state OPER_DISABLED (Disabled).
 
 ![service_vs](img/service_vs.png?raw=true "service vs")
 
@@ -317,9 +312,24 @@ Create one service **Avi Runtime**.
 - Power State: CRIT if not "SE_POWER_ON"
 </details>
 
-## Download
-- [Download version 0.3.0][PACKAGE]
+## Compatibility
 
-## Tested Devices
-Tested with the following versions:
-- 30.2.x
+> [!NOTE]
+> The versions listed below are those with which the plugin was tested.
+> Other versions may work as well, but have not been tested.
+
+### Checkmk
+| Checkmk version | Plugin version |
+|-----------------|----------------|
+| 2.4.x           | 0.4.0          |
+| 2.5.x           | Not yet tested |
+
+The MKP requires at least **Checkmk 2.4.0b1** and is declared usable until **2.6.0b1**.
+
+### VMware Avi Load Balancer
+
+| Avi version | Plugin version |
+|-------------|----------------|
+| 30.2.x      | 0.4.0          |
+
+
