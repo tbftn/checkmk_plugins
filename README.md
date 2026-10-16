@@ -14,7 +14,9 @@ Each plugin lives in its own folder and has its own `README.md` with details.
 ### Extreme Networks
 - [**Optical Modules (SFP)**](netextreme_dom/): Monitor the *input power* and the *output power* of optical modules (SFPs) on Switches
 
-- [**Memory Usage**](netextreme_mem/): Monitor the *memory usage* on Switches
+- [**Memory Usage (EXOS)**](netextreme_mem/): Monitor the *memory usage* of switches running ExtremeXOS (EXOS)
+
+- [**Memory Usage (VOSS / Fabric Engine)**](extreme_vsp_mem/): Monitor the *memory usage* of switches running VOSS / Fabric Engine
 
 - [**Power Supply Input**](netextreme_psu_in/): Monitor the *electrical power* and the *state* of Power Supply Inputs on Switches
 
