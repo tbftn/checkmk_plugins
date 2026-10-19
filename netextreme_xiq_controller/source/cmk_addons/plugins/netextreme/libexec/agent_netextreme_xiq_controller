@@ -2,7 +2,7 @@
 #-*- encoding: utf-8
 #
 # Author : Alexander Vogel (alexander.vogel.2305@gmail.com)
-# Date   : 2026-04-16
+# Date   : 2026-10-19
 # License: GNU General Public License v2
 #
 # Libexec: ExtremeCloud IQ Controller
@@ -14,7 +14,6 @@ import requests
 import sys
 import urllib3
 
-from typing import Dict, Any, List, Optional
 
 urllib3.disable_warnings()
 

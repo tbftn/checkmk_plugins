@@ -1,4 +1,4 @@
-[PACKAGE]: packages/netextreme_xiq_controller-0.2.0.mkp "netextreme_xiq_controller-0.2.0.mkp"
+[PACKAGE]: packages/netextreme_xiq_controller-0.2.1.mkp "netextreme_xiq_controller-0.2.1.mkp"
 # ExtremeCloud IQ Controller (Special Agent)
 
 > [!note]
@@ -70,9 +70,9 @@ Creates the service **WLAN** for each WLAN (SSID) that is created. It will only 
 > [!NOTE]
 > The versions listed are those with which the plugin was tested. The plugin may also work with other versions.
 
-- 2.3.0: `netextreme_xiq_controller-0.2.0.mkp`
-- 2.4.0: `netextreme_xiq_controller-0.2.0.mkp`
-- 2.5.0: Not yet tested for this version
+- 2.3.0: `netextreme_xiq_controller-0.2.1.mkp`
+- 2.4.0: `netextreme_xiq_controller-0.2.1.mkp`
+- 2.5.0: `netextreme_xiq_controller-0.2.1.mkp`
 
 ## ExtremeCloud IQ Controller version compatibility
 > [!NOTE]
@@ -81,10 +81,5 @@ Creates the service **WLAN** for each WLAN (SSID) that is created. It will only 
 - 10.15.x: `netextreme_xiq_controller-0.1.0.mkp`
 - 10.16.x: `netextreme_xiq_controller-0.1.0.mkp`
 - 10.17.x: `netextreme_xiq_controller-0.2.0.mkp`
-- 10.18.x: `netextreme_xiq_controller-0.2.0.mkp`
+- 10.18.x: `netextreme_xiq_controller-0.2.1.mkp`
 - 10.19.x: Not yet tested for this version
-
-## Tested AP series
-- AP310i
-- AP505i
-- AP4000

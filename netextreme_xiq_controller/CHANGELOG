@@ -1,3 +1,7 @@
+2026-10-19 (0.2.1):
+   Cleaned up libexec code
+   Changed 'Valid until Checkmk version' to 2.5.99
+
 2026-04-16 (0.2.0):
     Added status "Upgrade failed" for access points
     Added inventory data (IP, MAC, ...) for access points in service details
