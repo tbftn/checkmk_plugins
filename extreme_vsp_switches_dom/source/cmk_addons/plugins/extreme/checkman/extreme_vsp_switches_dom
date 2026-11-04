@@ -1,0 +1,57 @@
+title: Extreme VSP Switch: Digital Optical Monitoring (DOM)
+agents: snmp
+author: alexander.vogel.2305@gmail.com
+catalog: hw/network/netextreme
+license: "GPLv2"
+distribution: "check_mk"
+description:
+ This check monitors the digital optical diagnostics of Extreme Networks
+ Fabric Engine switches via SNMP.
+
+ The check monitors the temperature, supply voltage, laser bias current,
+ optical transmit power (TX) and optical receive power (RX) of installed
+ SFP/SFP+ and multi-channel optical transceivers supporting DOM.
+
+ For single-channel transceivers, one service is created per physical port,
+ containing all five sensor values.
+
+ For multi-channel transceivers, one service monitors the shared temperature
+ and voltage sensors, while additional services monitor the laser bias
+ current, TX power and RX power of each optical channel.
+
+ Temperature is reported in degrees Celsius, voltage in volts, bias
+ current in amperes (automatically scaled to mA), and optical power in dBm.
+ All measured values are provided as performance data.
+
+ The check determines sensor states by comparing the measured values against
+ configured upper and lower warning and critical thresholds. The status
+ values reported by the device are collected but are not used for sensor
+ state evaluation.
+
+ Thresholds can be configured independently for each sensor type using
+ the rule "Extreme Networks VSP Digital Optical Monitoring (DOM)".
+
+ The following threshold modes are supported:
+
+ - Device levels: Use the thresholds reported by the optical module.
+ - Custom levels: Use user-defined warning and critical thresholds.
+ - No levels: Disable threshold evaluation while retaining performance data.
+
+ Device levels are used by default.
+
+item:
+ The physical interface name, optionally followed by the optical channel,
+ for example "1/17" or "1/54 Channel 2".
+
+discovery:
+ One service "DOM Port <item>" is discovered for each installed optical
+ transceiver supporting DOM.
+
+ For multi-channel transceivers, one service monitors the shared module
+ sensors and one additional service is discovered per optical channel.
+
+ Transceivers without DOM support are not discovered.
+
+ Only ports with ifAdminStatus up(1) are discovered. Administratively
+ disabled ports with ifAdminStatus down(2), ports in testing(3) state,
+ and ports with unknown administrative status are excluded.

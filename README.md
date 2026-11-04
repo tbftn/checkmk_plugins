@@ -12,7 +12,9 @@ Each plugin lives in its own folder and has its own `README.md` with details.
 - [**Voltage**](checkpoint_voltage/): Monitor *voltage sensors* on Firewalls and Appliances
 
 ### Extreme Networks
-- [**Optical Modules (SFP)**](netextreme_dom/): Monitor the *input power* and the *output power* of optical modules (SFPs) on Switches
+- [**Digital Optical Modules (EXOS)**](netextreme_dom/): Monitor optical *receive (RX)* and *transmit (TX)* power of SFP/SFP+ transceivers on Extreme Networks switches.
+
+- [**Digital Optical Modules (VOSS / Fabric Engine)**](extreme_vsp_switches_dom/): Monitor *temperature*, *voltage*, *laser bias current*, and *optical RX/TX power* of SFP/SFP+ and multi-channel QSFP transceivers.
 
 - [**Memory Usage (EXOS)**](netextreme_mem/): Monitor the *memory usage* of switches running ExtremeXOS (EXOS)
 
